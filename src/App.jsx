@@ -111,6 +111,24 @@ const saveFoodLog = async (log) => {
     fat_g:            log.fat_g,
     fibre_g:          log.fibre_g,
     sugar_g:          log.sugar_g,
+    saturated_fat_g:  log.saturated_fat_g,
+    trans_fat_g:      log.trans_fat_g,
+    cholesterol_mg:   log.cholesterol_mg,
+    sodium_mg:        log.sodium_mg,
+    potassium_mg:     log.potassium_mg,
+    calcium_mg:       log.calcium_mg,
+    iron_mg:          log.iron_mg,
+    magnesium_mg:     log.magnesium_mg,
+    phosphorus_mg:    log.phosphorus_mg,
+    zinc_mg:          log.zinc_mg,
+    vitamin_a_ug:     log.vitamin_a_ug,
+    vitamin_c_mg:     log.vitamin_c_mg,
+    vitamin_d_ug:     log.vitamin_d_ug,
+    vitamin_e_mg:     log.vitamin_e_mg,
+    vitamin_k_ug:     log.vitamin_k_ug,
+    vitamin_b12_ug:   log.vitamin_b12_ug,
+    vitamin_b6_mg:    log.vitamin_b6_mg,
+    folate_ug:        log.folate_ug,
     quality_score:    log.quality_score,
     quality_label:    log.quality_label,
     main_ingredients: log.main_ingredients,
@@ -389,19 +407,37 @@ function FoodPage({ logs, setLogs }) {
             role: "user",
             content: [
               { type:"image", source:{ type:"base64", media_type:"image/jpeg", data:imageData } },
-              { type:"text", text:`Analyse this meal and respond ONLY with raw JSON (no markdown, no backticks):
+              { type:"text", text:`You are an expert nutritionist. Analyse this meal photo carefully, considering visible portion sizes. Respond ONLY with raw JSON (no markdown, no backticks):
 {
-  "meal_name": "name of the meal",
+  "meal_name": "specific name of the meal",
   "calories": number,
   "protein_g": number,
   "carbs_g": number,
   "fat_g": number,
   "fibre_g": number,
   "sugar_g": number,
+  "saturated_fat_g": number,
+  "trans_fat_g": number,
+  "cholesterol_mg": number,
+  "sodium_mg": number,
+  "potassium_mg": number,
+  "calcium_mg": number,
+  "iron_mg": number,
+  "magnesium_mg": number,
+  "phosphorus_mg": number,
+  "zinc_mg": number,
+  "vitamin_a_ug": number,
+  "vitamin_c_mg": number,
+  "vitamin_d_ug": number,
+  "vitamin_e_mg": number,
+  "vitamin_k_ug": number,
+  "vitamin_b12_ug": number,
+  "vitamin_b6_mg": number,
+  "folate_ug": number,
   "quality_score": number 1-10,
   "quality_label": "Excellent or Good or Average or Poor",
   "main_ingredients": ["item1","item2","item3"],
-  "notes": "one sentence about nutritional value"
+  "notes": "one sentence about nutritional value and suggestions"
 }` }
             ]
           }]
@@ -507,15 +543,72 @@ function FoodPage({ logs, setLogs }) {
             ))}
           </div>
 
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
-            {[{label:"Fibre",value:`${result.fibre_g}g`,color:"#34d399"},{label:"Sugar",value:`${result.sugar_g}g`,color:"#f472b6"}].map(m=>(
-              <div key={m.label} style={{background:"rgba(255,255,255,0.03)",borderRadius:8,
-                border:"1px solid rgba(255,255,255,0.06)",padding:"8px 12px",
-                display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <span style={{fontSize:12,color:"#888"}}>{m.label}</span>
-                <span style={{fontSize:13,fontWeight:600,color:m.color}}>{m.value}</span>
-              </div>
-            ))}
+          {/* Fats */}
+          <div style={{marginBottom:12}}>
+            <div style={{fontSize:11,color:"#555",letterSpacing:1,textTransform:"uppercase",marginBottom:6}}>Fats</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+              {[
+                {label:"Fibre",value:`${result.fibre_g}g`,color:"#34d399"},
+                {label:"Sugar",value:`${result.sugar_g}g`,color:"#f472b6"},
+                {label:"Saturated",value:`${result.saturated_fat_g}g`,color:"#fb923c"},
+                {label:"Trans Fat",value:`${result.trans_fat_g}g`,color:"#f87171"},
+                {label:"Cholesterol",value:`${result.cholesterol_mg}mg`,color:"#facc15"},
+                {label:"Sodium",value:`${result.sodium_mg}mg`,color:"#60a5fa"},
+              ].map(m=>(
+                <div key={m.label} style={{background:"rgba(255,255,255,0.03)",borderRadius:8,
+                  border:"1px solid rgba(255,255,255,0.06)",padding:"8px 10px",
+                  display:"flex",flexDirection:"column",gap:2}}>
+                  <span style={{fontSize:13,fontWeight:600,color:m.color}}>{m.value}</span>
+                  <span style={{fontSize:10,color:"#555"}}>{m.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Minerals */}
+          <div style={{marginBottom:12}}>
+            <div style={{fontSize:11,color:"#555",letterSpacing:1,textTransform:"uppercase",marginBottom:6}}>Minerals</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+              {[
+                {label:"Potassium",value:`${result.potassium_mg}mg`,color:"#a78bfa"},
+                {label:"Calcium",value:`${result.calcium_mg}mg`,color:"#34d399"},
+                {label:"Iron",value:`${result.iron_mg}mg`,color:"#f87171"},
+                {label:"Magnesium",value:`${result.magnesium_mg}mg`,color:"#60a5fa"},
+                {label:"Phosphorus",value:`${result.phosphorus_mg}mg`,color:"#facc15"},
+                {label:"Zinc",value:`${result.zinc_mg}mg`,color:"#fb923c"},
+              ].map(m=>(
+                <div key={m.label} style={{background:"rgba(255,255,255,0.03)",borderRadius:8,
+                  border:"1px solid rgba(255,255,255,0.06)",padding:"8px 10px",
+                  display:"flex",flexDirection:"column",gap:2}}>
+                  <span style={{fontSize:13,fontWeight:600,color:m.color}}>{m.value}</span>
+                  <span style={{fontSize:10,color:"#555"}}>{m.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Vitamins */}
+          <div style={{marginBottom:12}}>
+            <div style={{fontSize:11,color:"#555",letterSpacing:1,textTransform:"uppercase",marginBottom:6}}>Vitamins</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+              {[
+                {label:"Vitamin A",value:`${result.vitamin_a_ug}μg`,color:"#f59e0b"},
+                {label:"Vitamin C",value:`${result.vitamin_c_mg}mg`,color:"#34d399"},
+                {label:"Vitamin D",value:`${result.vitamin_d_ug}μg`,color:"#facc15"},
+                {label:"Vitamin E",value:`${result.vitamin_e_mg}mg`,color:"#fb923c"},
+                {label:"Vitamin K",value:`${result.vitamin_k_ug}μg`,color:"#a78bfa"},
+                {label:"Vitamin B12",value:`${result.vitamin_b12_ug}μg`,color:"#60a5fa"},
+                {label:"Vitamin B6",value:`${result.vitamin_b6_mg}mg`,color:"#f472b6"},
+                {label:"Folate",value:`${result.folate_ug}μg`,color:"#34d399"},
+              ].map(m=>(
+                <div key={m.label} style={{background:"rgba(255,255,255,0.03)",borderRadius:8,
+                  border:"1px solid rgba(255,255,255,0.06)",padding:"8px 10px",
+                  display:"flex",flexDirection:"column",gap:2}}>
+                  <span style={{fontSize:13,fontWeight:600,color:m.color}}>{m.value}</span>
+                  <span style={{fontSize:10,color:"#555"}}>{m.label}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div style={{marginBottom:16}}>
