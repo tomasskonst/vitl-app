@@ -129,6 +129,7 @@ const saveFoodLog = async (log) => {
     vitamin_b12_ug:   log.vitamin_b12_ug,
     vitamin_b6_mg:    log.vitamin_b6_mg,
     folate_ug:        log.folate_ug,
+    confidence_score: log.confidence_score,
     quality_score:    log.quality_score,
     quality_label:    log.quality_label,
     main_ingredients: log.main_ingredients,
@@ -434,6 +435,7 @@ function FoodPage({ logs, setLogs }) {
   "vitamin_b12_ug": number,
   "vitamin_b6_mg": number,
   "folate_ug": number,
+  "confidence_score": number 1-100,
   "quality_score": number 1-10,
   "quality_label": "Excellent or Good or Average or Poor",
   "main_ingredients": ["item1","item2","item3"],
@@ -519,6 +521,12 @@ function FoodPage({ logs, setLogs }) {
             <div>
               <div style={{fontSize:18,fontWeight:700,color:"#f0f0f8"}}>{result.meal_name}</div>
               <div style={{fontSize:12,color:"#666",marginTop:2}}>{result.notes}</div>
+<div style={{marginTop:6,display:"flex",alignItems:"center",gap:6}}>
+  <div style={{fontSize:11,color:"#555"}}>Estimate confidence:</div>
+  <div style={{fontSize:12,fontWeight:700,color:result.confidence_score>=80?"#4ade80":result.confidence_score>=60?"#facc15":"#f87171"}}>
+    {result.confidence_score}%
+  </div>
+</div>
             </div>
             <div style={{background:scoreBg(result.quality_score),border:`1px solid ${scoreColor(result.quality_score)}44`,
               borderRadius:10,padding:"6px 12px",textAlign:"center"}}>
