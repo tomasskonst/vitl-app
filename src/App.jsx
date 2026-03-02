@@ -68,6 +68,23 @@ const getNextPeriodTime = () => {
   return "06:00";
 };
 
+// Returns the Monday date string (YYYY-MM-DD) for the current week
+const getCurrentWeekMonday = () => {
+  const d = new Date();
+  const day = d.getDay(); // 0=Sun, 1=Mon...
+  const diff = (day === 0 ? -6 : 1 - day);
+  d.setDate(d.getDate() + diff);
+  return d.toISOString().split("T")[0];
+};
+
+const formatWeekRange = (mondayStr) => {
+  const mon = new Date(mondayStr + "T12:00:00");
+  const sun = new Date(mon);
+  sun.setDate(mon.getDate() + 6);
+  const opts = { day: "numeric", month: "short" };
+  return `${mon.toLocaleDateString("en-GB", opts)} – ${sun.toLocaleDateString("en-GB", opts)}`;
+};
+
 const emptyMental = () => ({
   date: today(),
   moods:        { Morning: 5, Afternoon: 5, Evening: 5 },
@@ -80,7 +97,9 @@ const emptyMental = () => ({
   stressLevel: 5,
   energyLevel: 5,
   notes: "",
-  wol: Object.fromEntries(WOL_DIMS.map(d => [d.key, 5])),
+  wol:        Object.fromEntries(WOL_DIMS.map(d => [d.key, 5])),
+  wolWeekKey: null,
+  wolSaved:   false,
 });
 
 const scoreColor = (v) => {
@@ -122,6 +141,8 @@ const loadLogs = async () => {
     energyLevels: l.energy_levels ?? { Morning: 5, Afternoon: 5, Evening: 5 },
     stressLevels: l.stress_levels ?? { Morning: 5, Afternoon: 5, Evening: 5 },
     savedPeriods: l.saved_periods ?? [],
+    wolWeekKey:   l.wol_week_key  ?? null,
+    wolSaved:     l.wol_saved     ?? false,
     avgMood:      l.avg_mood,
     wolAvg:       l.wol_avg,
   }));
@@ -147,6 +168,8 @@ const saveMentalLog = async (entry) => {
     energy_level:  entry.energyLevel,
     notes:         entry.notes,
     wol:           entry.wol,
+    wol_week_key:  entry.wolWeekKey,
+    wol_saved:     entry.wolSaved,
     avg_mood:      entry.avgMood,
     wol_avg:       entry.wolAvg,
   });
@@ -1146,43 +1169,7 @@ function MentalPage({ logs, setLogs }) {
             </div>
           </div>
 
-          {/* Wheel of Life */}
-          <div style={{
-            background: "rgba(255,255,255,0.03)", borderRadius: 14,
-            border: "1px solid rgba(255,255,255,0.06)", padding: "16px", marginBottom: 14,
-          }}>
-            <div onClick={() => setExpandWol(!expandWol)}
-              style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
-              <div style={{ fontSize: 11, color: "#555", letterSpacing: 1, textTransform: "uppercase" }}>Wheel of Life</div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 16, fontWeight: 700, color: scoreColor(parseFloat(wolAvg)) }}>{wolAvg}</span>
-                <span style={{ fontSize: 12, color: "#555" }}>{expandWol ? "▲" : "▼"}</span>
-              </div>
-            </div>
-            {expandWol ? (
-              <div style={{ marginTop: 16 }}>
-                {WOL_DIMS.map(dim => (
-                  <div key={dim.key} style={{ marginBottom: 14 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                      <span style={{ fontSize: 13, color: "#aaa" }}>{dim.icon} {dim.label}</span>
-                      <span style={{ fontSize: 14, fontWeight: 700, color: scoreColor(entry.wol[dim.key]) }}>{entry.wol[dim.key]}</span>
-                    </div>
-                    <Slider value={entry.wol[dim.key]} onChange={v => set(`wol.${dim.key}`, v)} />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div style={{ display: "flex", gap: 4, marginTop: 12, flexWrap: "wrap" }}>
-                {WOL_DIMS.map(dim => (
-                  <div key={dim.key} title={dim.label} style={{
-                    width: 28, height: 28, borderRadius: 6, background: scoreBg(entry.wol[dim.key]),
-                    border: `1px solid ${scoreColor(entry.wol[dim.key])}44`,
-                    display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14,
-                  }}>{dim.icon}</div>
-                ))}
-              </div>
-            )}
-          </div>
+
 
           <textarea placeholder="How was your day? Any observations…" value={entry.notes}
             onChange={e => set("notes", e.target.value)}
@@ -1211,6 +1198,120 @@ function MentalPage({ logs, setLogs }) {
               {isPeriodLocked ? `Next entry at ${getNextPeriodTime()}` : "Save Check-in"}
             </button>
           )}
+        </div>
+      )}
+
+      {tab === "weekly" && (
+        <div style={{ padding: "20px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            <div>
+              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#f0f0f8" }}>Weekly Check-in</h2>
+              <div style={{ fontSize: 12, color: "#555", marginTop: 2 }}>
+                {formatWeekRange(getCurrentWeekMonday())}
+              </div>
+            </div>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 24, fontWeight: 700, color: scoreColor(parseFloat(wolAvg)) }}>{wolAvg}</div>
+              <div style={{ fontSize: 10, color: "#555" }}>wol avg</div>
+            </div>
+          </div>
+
+          {/* Week lock status banner */}
+          {(() => {
+            const thisWeek = getCurrentWeekMonday();
+            const weekLog  = logs.find(l => l.type === "mental" && l.wolWeekKey === thisWeek && l.wolSaved);
+            const isLocked = !!weekLog;
+
+            // Find next Monday
+            const nextMon = new Date(thisWeek + "T12:00:00");
+            nextMon.setDate(nextMon.getDate() + 7);
+            const nextMonStr = nextMon.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+
+            return (
+              <>
+                <div style={{
+                  background: isLocked ? "rgba(255,255,255,0.02)" : "rgba(99,102,241,0.1)",
+                  borderRadius: 12, padding: "10px 14px", marginBottom: 14,
+                  border: `1px solid ${isLocked ? "rgba(255,255,255,0.05)" : "rgba(99,102,241,0.3)"}`,
+                  display: "flex", justifyContent: "space-between", alignItems: "center",
+                }}>
+                  <div style={{ fontSize: 13, color: isLocked ? "#555" : "#a5b4fc", fontWeight: 600 }}>
+                    📅 Week of {formatWeekRange(thisWeek)}
+                  </div>
+                  {isLocked ? (
+                    <div style={{ fontSize: 12, color: "#555" }}>
+                      Unlocks <span style={{ color: "#a5b4fc", fontWeight: 700 }}>{nextMonStr}</span>
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: 11, color: "#666" }}>Now open</div>
+                  )}
+                </div>
+
+                {/* WOL sliders */}
+                <div style={{
+                  opacity: isLocked ? 0.45 : 1,
+                  transition: "opacity 0.3s",
+                  pointerEvents: isLocked ? "none" : "auto",
+                }}>
+                  {WOL_DIMS.map(dim => (
+                    <div key={dim.key} style={{
+                      background: "rgba(255,255,255,0.03)", borderRadius: 12,
+                      border: "1px solid rgba(255,255,255,0.06)",
+                      padding: "12px 14px", marginBottom: 10,
+                    }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                        <span style={{ fontSize: 12, color: "#888" }}>{dim.icon} {dim.label}</span>
+                        <span style={{ fontSize: 15, fontWeight: 700, color: scoreColor(entry.wol[dim.key]) }}>
+                          {entry.wol[dim.key]}
+                        </span>
+                      </div>
+                      <Slider
+                        value={entry.wol[dim.key]}
+                        onChange={v => set(`wol.${dim.key}`, v)}
+                        color={scoreColor(entry.wol[dim.key])}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Save button */}
+                {isLocked ? (
+                  <div style={{
+                    textAlign: "center", padding: "14px", marginTop: 4,
+                    background: "rgba(74,222,128,0.1)", borderRadius: 12,
+                    color: "#4ade80", fontSize: 14, fontWeight: 600,
+                  }}>✓  Saved for this week</div>
+                ) : (
+                  <button onClick={async () => {
+                    const thisWeekKey = getCurrentWeekMonday();
+                    const existingLog = logs.find(l => l.type === "mental" && l.date === today());
+                    const updatedEntry = {
+                      ...entry,
+                      wolWeekKey: thisWeekKey,
+                      wolSaved:   true,
+                    };
+                    const log = {
+                      id:      existingLog?.id ?? Date.now(),
+                      type:    "mental",
+                      ...updatedEntry,
+                      time:    new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
+                      avgMood: parseFloat(avgMood),
+                      wolAvg:  parseFloat(wolAvg),
+                    };
+                    await saveMentalLog(log);
+                    setLogs(prev => [log, ...prev.filter(l => !(l.type === "mental" && l.date === today()))]);
+                    setEntry(updatedEntry);
+                  }} style={{
+                    width: "100%", padding: "14px", borderRadius: 12, border: "none",
+                    background: "linear-gradient(135deg,#6366f1,#8b5cf6)",
+                    color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer", marginTop: 4,
+                  }}>
+                    Save Weekly Check-in
+                  </button>
+                )}
+              </>
+            );
+          })()}
         </div>
       )}
 
@@ -1339,21 +1440,19 @@ function JournalPage({ logs, setLogs }) {
 
   return (
     <div style={{ maxWidth: 480, margin: "0 auto", paddingBottom: 120 }}>
-      <div style={{
-        display: "flex", gap: 0, background: "rgba(255,255,255,0.04)",
-        borderRadius: 12, margin: "20px 20px 0", border: "1px solid rgba(255,255,255,0.06)",
-      }}>
-        {["checkin", "history"].map(t => (
-          <button key={t} onClick={() => setTab(t)} style={{
-            flex: 1, padding: "10px", border: "none", borderRadius: 10,
-            background: tab === t ? "rgba(99,102,241,0.3)" : "transparent",
-            color: tab === t ? "#a5b4fc" : "#555",
-            fontSize: 13, fontWeight: tab === t ? 600 : 400, cursor: "pointer", transition: "all 0.2s",
-          }}>
-            {t === "checkin" ? "Today's Check-in" : "History"}
-          </button>
-        ))}
-      </div>
+      const getCurrentPeriod = () => {
+  const h = new Date().getHours();
+  if (h >= 6  && h < 12) return "Morning";
+  if (h >= 12 && h < 18) return "Afternoon";
+  return "Evening";
+};
+
+const getNextPeriodTime = () => {
+  const h = new Date().getHours();
+  if (h >= 6  && h < 12) return "12:00";
+  if (h >= 12 && h < 18) return "18:00";
+  return "06:00";
+};
 
       {tab === "checkin" && (
         <div style={{ padding: "20px" }}>
