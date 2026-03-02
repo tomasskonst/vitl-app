@@ -1077,67 +1077,72 @@ function MentalPage({ logs, setLogs }) {
             </div>
           )}
 
-          {/* Mood + Energy + Stress side by side */}
+          {/* Mood, Energy, Stress — each in own full-width block */}
           <div style={{
-            background: "rgba(255,255,255,0.03)", borderRadius: 14,
-            border: "1px solid rgba(255,255,255,0.06)", padding: "16px", marginBottom: 14,
+            display: "flex", flexDirection: "column", gap: 10, marginBottom: 14,
             opacity: isPeriodLocked ? 0.45 : 1,
             transition: "opacity 0.3s",
             pointerEvents: isPeriodLocked ? "none" : "auto",
           }}>
-            <div style={{ fontSize: 11, color: "#555", letterSpacing: 1, textTransform: "uppercase", marginBottom: 14 }}>
-              {periodEmoji[currentPeriod]} {currentPeriod}
+            {/* Mood */}
+            <div style={{
+              background: "rgba(255,255,255,0.03)", borderRadius: 12,
+              border: "1px solid rgba(255,255,255,0.06)", padding: "12px 14px",
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                <span style={{ fontSize: 12, color: "#888" }}>{periodEmoji[currentPeriod]} {currentPeriod} Mood</span>
+                <span style={{ fontSize: 15, fontWeight: 700, color: scoreColor(entry.moods[currentPeriod]) }}>
+                  {entry.moods[currentPeriod]}
+                </span>
+              </div>
+              <Slider
+                value={entry.moods[currentPeriod]}
+                onChange={v => set(`moods.${currentPeriod}`, v)}
+                color={scoreColor(entry.moods[currentPeriod])}
+              />
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              {/* Left: Mood slider */}
-              <div>
-                <div style={{ fontSize: 11, color: "#888", marginBottom: 6, letterSpacing: 0.5 }}>😊 Mood</div>
-                <div style={{ fontSize: 22, fontWeight: 700, color: scoreColor(entry.moods[currentPeriod]), marginBottom: 4 }}>
-                  {entry.moods[currentPeriod]}
-                </div>
-                <Slider
-                  value={entry.moods[currentPeriod]}
-                  onChange={v => set(`moods.${currentPeriod}`, v)}
-                />
+            {/* Energy */}
+            <div style={{
+              background: "rgba(255,255,255,0.03)", borderRadius: 12,
+              border: "1px solid rgba(255,255,255,0.06)", padding: "12px 14px",
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                <span style={{ fontSize: 12, color: "#888" }}>⚡ {currentPeriod} Energy</span>
+                <span style={{ fontSize: 15, fontWeight: 700, color: scoreColor(entry.energyLevels[currentPeriod]) }}>
+                  {entry.energyLevels[currentPeriod]}
+                </span>
               </div>
+              <Slider
+                value={entry.energyLevels[currentPeriod]}
+                onChange={v => set(`energyLevels.${currentPeriod}`, v)}
+                color={scoreColor(entry.energyLevels[currentPeriod])}
+              />
+            </div>
 
-              {/* Right: Energy + Stress stacked */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                <div style={{
-                  background: "rgba(255,255,255,0.03)", borderRadius: 10,
-                  border: "1px solid rgba(255,255,255,0.06)", padding: "10px 12px",
-                }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                    <span style={{ fontSize: 11, color: "#888" }}>⚡ Energy</span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: scoreColor(entry.energyLevels[currentPeriod]) }}>
-                      {entry.energyLevels[currentPeriod]}
-                    </span>
-                  </div>
-                  <Slider
-                    value={entry.energyLevels[currentPeriod]}
-                    onChange={v => set(`energyLevels.${currentPeriod}`, v)}
-                    color={scoreColor(entry.energyLevels[currentPeriod])}
-                  />
-                </div>
-
-                <div style={{
-                  background: "rgba(255,255,255,0.03)", borderRadius: 10,
-                  border: "1px solid rgba(255,255,255,0.06)", padding: "10px 12px",
-                }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                    <span style={{ fontSize: 11, color: "#888" }}>🌊 Stress</span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: entry.stressLevels[currentPeriod] <= 4 ? "#4ade80" : entry.stressLevels[currentPeriod] <= 6 ? "#facc15" : "#f87171" }}>
-                      {entry.stressLevels[currentPeriod]}
-                    </span>
-                  </div>
-                  <Slider
-                    value={entry.stressLevels[currentPeriod]}
-                    onChange={v => set(`stressLevels.${currentPeriod}`, v)}
-                    color={entry.stressLevels[currentPeriod] <= 4 ? "#4ade80" : entry.stressLevels[currentPeriod] <= 6 ? "#facc15" : "#f87171"}
-                  />
-                </div>
-              </div>
+            {/* Stress */}
+            <div style={{
+              background: "rgba(255,255,255,0.03)", borderRadius: 12,
+              border: "1px solid rgba(255,255,255,0.06)", padding: "12px 14px",
+            }}>
+              {(() => {
+                const c = entry.stressLevels[currentPeriod] <= 4 ? "#4ade80" : entry.stressLevels[currentPeriod] <= 6 ? "#facc15" : "#f87171";
+                return (
+                  <>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                      <span style={{ fontSize: 12, color: "#888" }}>🌊 {currentPeriod} Stress</span>
+                      <span style={{ fontSize: 15, fontWeight: 700, color: c }}>
+                        {entry.stressLevels[currentPeriod]}
+                      </span>
+                    </div>
+                    <Slider
+                      value={entry.stressLevels[currentPeriod]}
+                      onChange={v => set(`stressLevels.${currentPeriod}`, v)}
+                      color={c}
+                    />
+                  </>
+                );
+              })()}
             </div>
           </div>
 
