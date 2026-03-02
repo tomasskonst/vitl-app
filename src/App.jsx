@@ -1037,14 +1037,18 @@ function MentalPage({ logs, setLogs }) {
         display: "flex", gap: 0, background: "rgba(255,255,255,0.04)",
         borderRadius: 12, margin: "20px 20px 0", border: "1px solid rgba(255,255,255,0.06)",
       }}>
-        {["checkin", "history"].map(t => (
-          <button key={t} onClick={() => setTab(t)} style={{
+        {[
+          { key: "checkin", label: "Daily" },
+          { key: "weekly",  label: "Weekly" },
+          { key: "history", label: "History" },
+        ].map(t => (
+          <button key={t.key} onClick={() => setTab(t.key)} style={{
             flex: 1, padding: "10px", border: "none", borderRadius: 10,
-            background: tab === t ? "rgba(99,102,241,0.3)" : "transparent",
-            color: tab === t ? "#a5b4fc" : "#555",
-            fontSize: 13, fontWeight: tab === t ? 600 : 400, cursor: "pointer", transition: "all 0.2s",
+            background: tab === t.key ? "rgba(99,102,241,0.3)" : "transparent",
+            color: tab === t.key ? "#a5b4fc" : "#555",
+            fontSize: 13, fontWeight: tab === t.key ? 600 : 400, cursor: "pointer", transition: "all 0.2s",
           }}>
-            {t === "checkin" ? "Today's Check-in" : "History"}
+            {t.label}
           </button>
         ))}
       </div>
@@ -1440,6 +1444,25 @@ function JournalPage({ logs, setLogs }) {
 
   return (
     <div style={{ maxWidth: 480, margin: "0 auto", paddingBottom: 120 }}>
+
+      <div style={{
+        display: "flex", gap: 0, background: "rgba(255,255,255,0.04)",
+        borderRadius: 12, margin: "20px 20px 0", border: "1px solid rgba(255,255,255,0.06)",
+      }}>
+        {[
+          { key: "checkin", label: "Daily" },
+          { key: "history", label: "History" },
+        ].map(t => (
+          <button key={t.key} onClick={() => setTab(t.key)} style={{
+            flex: 1, padding: "10px", border: "none", borderRadius: 10,
+            background: tab === t.key ? "rgba(99,102,241,0.3)" : "transparent",
+            color: tab === t.key ? "#a5b4fc" : "#555",
+            fontSize: 13, fontWeight: tab === t.key ? 600 : 400, cursor: "pointer", transition: "all 0.2s",
+          }}>
+            {t.label}
+          </button>
+        ))}
+      </div>
 
       {tab === "checkin" && (
         <div style={{ padding: "20px" }}>
