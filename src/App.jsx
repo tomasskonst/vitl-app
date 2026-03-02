@@ -1001,41 +1001,20 @@ function MentalPage({ logs, setLogs }) {
             {[
               {key:"energyLevel",label:"Energy",icon:"⚡"},
               {key:"stressLevel",label:"Stress",icon:"🌊",invert:true},
-              {key:"workHours",label:"Work hrs",icon:"💼",min:0,max:16,step:0.5,raw:true},
-              {key:"sleepHours",label:"Sleep hrs",icon:"🌙",min:3,max:12,step:0.5,raw:true},
             ].map(m=>{
               const v=entry[m.key];
-              const c=m.raw
-                ?(m.key==="sleepHours"?(v>=7.5?"#4ade80":v>=6?"#facc15":"#f87171"):(v<=8?"#4ade80":v<=10?"#facc15":"#f87171"))
-                :(m.invert?(v<=4?"#4ade80":v<=6?"#facc15":"#f87171"):scoreColor(v));
+              const c=m.invert?(v<=4?"#4ade80":v<=6?"#facc15":"#f87171"):scoreColor(v);
               return (
                 <div key={m.key} style={{background:"rgba(255,255,255,0.03)",borderRadius:12,
                   border:"1px solid rgba(255,255,255,0.06)",padding:"12px 14px"}}>
                   <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
                     <span style={{fontSize:12,color:"#888"}}>{m.icon} {m.label}</span>
-                    <span style={{fontSize:15,fontWeight:700,color:c}}>{v}{m.raw?"h":""}</span>
+                    <span style={{fontSize:15,fontWeight:700,color:c}}>{v}</span>
                   </div>
-                  <Slider value={v} min={m.min||1} max={m.max||10} step={m.step||0.5} onChange={val=>set(m.key,val)} color={c} />
+                  <Slider value={v} min={1} max={10} step={0.5} onChange={val=>set(m.key,val)} color={c} />
                 </div>
               );
             })}
-          </div>
-
-          <div style={{background:"rgba(255,255,255,0.03)",borderRadius:12,
-            border:"1px solid rgba(255,255,255,0.06)",padding:"12px 16px",
-            display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-            <div>
-              <div style={{fontSize:13,color:"#ccc",fontWeight:500}}>🤝 Social Activity</div>
-              <div style={{fontSize:11,color:"#555",marginTop:2}}>Did you spend time with others today?</div>
-            </div>
-            <button onClick={()=>set("social",!entry.social)} style={{
-              background:entry.social?"rgba(74,222,128,0.2)":"rgba(255,255,255,0.05)",
-              border:`1px solid ${entry.social?"#4ade8066":"rgba(255,255,255,0.1)"}`,
-              borderRadius:20,padding:"6px 16px",cursor:"pointer",
-              color:entry.social?"#4ade80":"#666",fontSize:13,fontWeight:600,transition:"all 0.2s",
-            }}>
-              {entry.social?"Yes ✓":"No"}
-            </button>
           </div>
 
           <div style={{background:"rgba(255,255,255,0.03)",borderRadius:14,
@@ -1145,7 +1124,229 @@ function MentalPage({ logs, setLogs }) {
     </div>
   );
 }
+// ── Journal Page ─────────────────────────────────────────────────────────────
+function JournalPage({ logs, setLogs }) {
+  const [entry, setEntry] = useState(() => {
+    const todayLog = logs.find(l => l.type === "mental" && l.date === today());
+    return todayLog ? {
+      date: todayLog.date,
+      workHours: todayLog.workHours ?? 8,
+      sleepHours: todayLog.sleepHours ?? 7.5,
+      social: todayLog.social ?? false,
+      notes: todayLog.notes ?? "",
+      moods: todayLog.moods ?? { Morning: 5, Afternoon: 5, Evening: 5 },
+      stressLevel: todayLog.stressLevel ?? 5,
+      energyLevel: todayLog.energyLevel ?? 5,
+      wol: todayLog.wol ?? Object.fromEntries(WOL_DIMS.map(d => [d.key, 5])),
+    } : emptyMental();
+  });
+  const [tab, setTab] = useState("checkin");
+  const [saved, setSaved] = useState(false);
 
+  const set = (path, val) => {
+    setEntry(prev => {
+      const next = { ...prev };
+      if (path.includes(".")) {
+        const [a, b] = path.split(".");
+        next[a] = { ...next[a], [b]: val };
+      } else { next[path] = val; }
+      return next;
+    });
+    setSaved(false);
+  };
+
+  const avgMood = (Object.values(entry.moods).reduce((a, b) => a + b, 0) / 3).toFixed(1);
+  const wolAvg  = (Object.values(entry.wol).reduce((a, b) => a + b, 0) / WOL_DIMS.length).toFixed(1);
+
+  const saveEntry = async () => {
+    const existingLog = logs.find(l => l.type === "mental" && l.date === entry.date);
+    const log = {
+      id:          existingLog?.id ?? Date.now(),
+      type:        "mental",
+      ...entry,
+      time:        new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
+      avgMood:     parseFloat(avgMood),
+      wolAvg:      parseFloat(wolAvg),
+    };
+    await saveMentalLog(log);
+    setLogs(prev => [log, ...prev.filter(l => !(l.type === "mental" && l.date === entry.date))]);
+    setSaved(true);
+  };
+
+  const mentalLogs = logs.filter(l => l.type === "mental").sort((a, b) => b.date.localeCompare(a.date));
+
+  return (
+    <div style={{ maxWidth: 480, margin: "0 auto", paddingBottom: 120 }}>
+      <div style={{
+        display: "flex", gap: 0, background: "rgba(255,255,255,0.04)",
+        borderRadius: 12, margin: "20px 20px 0", border: "1px solid rgba(255,255,255,0.06)",
+      }}>
+        {["checkin", "history"].map(t => (
+          <button key={t} onClick={() => setTab(t)} style={{
+            flex: 1, padding: "10px", border: "none", borderRadius: 10,
+            background: tab === t ? "rgba(99,102,241,0.3)" : "transparent",
+            color: tab === t ? "#a5b4fc" : "#555",
+            fontSize: 13, fontWeight: tab === t ? 600 : 400, cursor: "pointer", transition: "all 0.2s",
+          }}>
+            {t === "checkin" ? "Today's Check-in" : "History"}
+          </button>
+        ))}
+      </div>
+
+      {tab === "checkin" && (
+        <div style={{ padding: "20px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            <div>
+              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#f0f0f8" }}>Journal</h2>
+              <div style={{ fontSize: 12, color: "#555", marginTop: 2 }}>
+                {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
+              </div>
+            </div>
+          </div>
+
+          {/* Work Hours */}
+          <div style={{
+            background: "rgba(255,255,255,0.03)", borderRadius: 12,
+            border: "1px solid rgba(255,255,255,0.06)", padding: "12px 14px", marginBottom: 10,
+          }}>
+            {(() => {
+              const v = entry.workHours;
+              const c = v <= 8 ? "#4ade80" : v <= 10 ? "#facc15" : "#f87171";
+              return (
+                <>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                    <span style={{ fontSize: 12, color: "#888" }}>💼 Work hrs</span>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: c }}>{v}h</span>
+                  </div>
+                  <Slider value={v} min={0} max={16} step={0.5} onChange={val => set("workHours", val)} color={c} />
+                </>
+              );
+            })()}
+          </div>
+
+          {/* Sleep Hours */}
+          <div style={{
+            background: "rgba(255,255,255,0.03)", borderRadius: 12,
+            border: "1px solid rgba(255,255,255,0.06)", padding: "12px 14px", marginBottom: 10,
+          }}>
+            {(() => {
+              const v = entry.sleepHours;
+              const c = v >= 7.5 ? "#4ade80" : v >= 6 ? "#facc15" : "#f87171";
+              return (
+                <>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                    <span style={{ fontSize: 12, color: "#888" }}>🌙 Sleep hrs</span>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: c }}>{v}h</span>
+                  </div>
+                  <Slider value={v} min={3} max={12} step={0.5} onChange={val => set("sleepHours", val)} color={c} />
+                </>
+              );
+            })()}
+          </div>
+
+          {/* Social Activity */}
+          <div style={{
+            background: "rgba(255,255,255,0.03)", borderRadius: 12,
+            border: "1px solid rgba(255,255,255,0.06)", padding: "12px 16px",
+            display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14,
+          }}>
+            <div>
+              <div style={{ fontSize: 13, color: "#ccc", fontWeight: 500 }}>🤝 Social Activity</div>
+              <div style={{ fontSize: 11, color: "#555", marginTop: 2 }}>Did you spend time with others today?</div>
+            </div>
+            <button onClick={() => set("social", !entry.social)} style={{
+              background: entry.social ? "rgba(74,222,128,0.2)" : "rgba(255,255,255,0.05)",
+              border: `1px solid ${entry.social ? "#4ade8066" : "rgba(255,255,255,0.1)"}`,
+              borderRadius: 20, padding: "6px 16px", cursor: "pointer",
+              color: entry.social ? "#4ade80" : "#666", fontSize: 13, fontWeight: 600, transition: "all 0.2s",
+            }}>
+              {entry.social ? "Yes ✓" : "No"}
+            </button>
+          </div>
+
+          {/* Notes */}
+          <textarea
+            placeholder="Write anything about your day — thoughts, reflections, observations…"
+            value={entry.notes}
+            onChange={e => set("notes", e.target.value)}
+            style={{
+              width: "100%", minHeight: 120,
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12,
+              padding: "12px 14px", color: "#ddd", fontSize: 13,
+              resize: "none", outline: "none",
+              boxSizing: "border-box", fontFamily: "inherit", marginBottom: 14, lineHeight: 1.6,
+            }}
+          />
+
+          {saved ? (
+            <div style={{
+              textAlign: "center", padding: "14px",
+              background: "rgba(74,222,128,0.1)", borderRadius: 12,
+              color: "#4ade80", fontSize: 14, fontWeight: 600,
+            }}>✓  Saved</div>
+          ) : (
+            <button onClick={saveEntry} style={{
+              width: "100%", padding: "14px", borderRadius: 12, border: "none",
+              background: "linear-gradient(135deg,#6366f1,#8b5cf6)",
+              color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer",
+            }}>
+              Save Journal Entry
+            </button>
+          )}
+        </div>
+      )}
+
+      {tab === "history" && (
+        <div style={{ padding: "20px" }}>
+          {mentalLogs.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "60px 20px", color: "#555" }}>
+              <div style={{ fontSize: 36, marginBottom: 12 }}>📓</div>
+              <div>No entries yet. Complete your first check-in!</div>
+            </div>
+          ) : mentalLogs.map(log => (
+            <div key={log.id} style={{
+              background: "rgba(255,255,255,0.03)", borderRadius: 14,
+              border: "1px solid rgba(255,255,255,0.06)", padding: "16px", marginBottom: 12,
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: "#ddd" }}>{fmt(log.date)}</div>
+                <div style={{ fontSize: 11, color: "#555" }}>{log.time}</div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 10 }}>
+                {[
+                  { label: "Work", value: `${log.workHours ?? "—"}h`, color: log.workHours <= 8 ? "#4ade80" : log.workHours <= 10 ? "#facc15" : "#f87171" },
+                  { label: "Sleep", value: `${log.sleepHours ?? "—"}h`, color: log.sleepHours >= 7.5 ? "#4ade80" : log.sleepHours >= 6 ? "#facc15" : "#f87171" },
+                  { label: "Social", value: log.social ? "Yes ✓" : "Solo", color: log.social ? "#4ade80" : "#888" },
+                ].map(item => (
+                  <div key={item.label} style={{
+                    background: "rgba(255,255,255,0.03)", borderRadius: 8,
+                    border: "1px solid rgba(255,255,255,0.06)", padding: "8px 10px", textAlign: "center",
+                  }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: item.color }}>{item.value}</div>
+                    <div style={{ fontSize: 10, color: "#555", marginTop: 2 }}>{item.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {log.notes ? (
+                <div style={{
+                  fontSize: 12, color: "#666", fontStyle: "italic",
+                  borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 8,
+                }}>
+                  "{log.notes}"
+                </div>
+              ) : (
+                <div style={{ fontSize: 12, color: "#333", fontStyle: "italic" }}>No notes written</div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 // ── Insights Page ───────────────────────────────────────────────────────────
 function InsightsPage({ logs }) {
   const mentalLogs = logs.filter(l=>l.type==="mental").slice(0,30);
@@ -1253,6 +1454,7 @@ export default function App() {
   const tabs = [
     {key:"home",    icon:"🏠", label:"Home"},
     {key:"mental",  icon:"🧠", label:"Mind"},
+    {key:"journal", icon:"📓", label:"Journal"},
     {key:"food",    icon:"🍽️", label:"Food"},
     {key:"insights",icon:"✦",  label:"Insights"},
   ];
@@ -1300,6 +1502,7 @@ export default function App() {
           {page==="home"     && <HomePage     logs={logs} setPage={setPage} />}
           {page==="food"     && <FoodPage     logs={logs} setLogs={setLogs} />}
           {page==="mental"   && <MentalPage   logs={logs} setLogs={setLogs} />}
+          {page==="journal"  && <JournalPage  logs={logs} setLogs={setLogs} />}
           {page==="insights" && <InsightsPage logs={logs} />}
         </div>
       )}
