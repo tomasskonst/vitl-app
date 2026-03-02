@@ -404,6 +404,7 @@ function FoodPage({ logs, setLogs }) {
   const [error, setError] = useState(null);
   const [saved, setSaved] = useState(false);
   const [textInput, setTextInput] = useState("");
+const [selectedLog, setSelectedLog] = useState(null);
   const fileRef = useRef();
 
   const handleFile = (file) => {
@@ -734,24 +735,177 @@ function FoodPage({ logs, setLogs }) {
         </div>
       )}
 
+      {selectedLog && (
+        <div style={{
+          position:"fixed", inset:0, zIndex:100,
+          background:"rgba(0,0,0,0.85)", backdropFilter:"blur(8px)",
+          overflowY:"auto", padding:"24px 20px 60px",
+        }}>
+          <div style={{maxWidth:480, margin:"0 auto"}}>
+            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20}}>
+              <div>
+                <div style={{fontSize:18, fontWeight:700, color:"#f0f0f8"}}>{selectedLog.meal_name}</div>
+                <div style={{fontSize:12, color:"#555", marginTop:2}}>{fmt(selectedLog.date)} · {selectedLog.time}</div>
+              </div>
+              <button onClick={() => setSelectedLog(null)} style={{
+                background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.1)",
+                borderRadius:10, padding:"8px 14px", color:"#aaa", fontSize:13, cursor:"pointer",
+              }}>✕ Close</button>
+            </div>
+
+            {selectedLog.image && (
+              <img src={selectedLog.image} alt="meal"
+                style={{width:"100%", borderRadius:16, maxHeight:220, objectFit:"cover", marginBottom:16}} />
+            )}
+
+            <div style={{display:"flex", alignItems:"center", gap:10, marginBottom:16}}>
+              <div style={{background:scoreBg(selectedLog.quality_score),
+                border:`1px solid ${scoreColor(selectedLog.quality_score)}44`,
+                borderRadius:10, padding:"6px 14px", textAlign:"center"}}>
+                <div style={{fontSize:20, fontWeight:700, color:scoreColor(selectedLog.quality_score)}}>{selectedLog.quality_score}</div>
+                <div style={{fontSize:10, color:scoreColor(selectedLog.quality_score), opacity:0.8}}>{selectedLog.quality_label}</div>
+              </div>
+              <div style={{fontSize:12, color:"#666", flex:1, lineHeight:1.5}}>{selectedLog.notes}</div>
+            </div>
+
+            {selectedLog.confidence_score && (
+              <div style={{display:"flex", alignItems:"center", gap:6, marginBottom:16}}>
+                <div style={{fontSize:11, color:"#555"}}>Estimate confidence:</div>
+                <div style={{fontSize:12, fontWeight:700, color:selectedLog.confidence_score>=80?"#4ade80":selectedLog.confidence_score>=60?"#facc15":"#f87171"}}>
+                  {selectedLog.confidence_score}%
+                </div>
+              </div>
+            )}
+
+            <div style={{display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:8, marginBottom:12}}>
+              {[
+                {label:"Calories", value:selectedLog.calories,   unit:"kcal", color:"#f59e0b"},
+                {label:"Protein",  value:selectedLog.protein_g,  unit:"g",    color:"#6366f1"},
+                {label:"Carbs",    value:selectedLog.carbs_g,    unit:"g",    color:"#f97316"},
+                {label:"Fat",      value:selectedLog.fat_g,      unit:"g",    color:"#ec4899"},
+              ].map(m=>(
+                <div key={m.label} style={{background:"rgba(255,255,255,0.04)", borderRadius:10,
+                  border:`1px solid ${m.color}33`, padding:"10px 8px", textAlign:"center"}}>
+                  <div style={{fontSize:16, fontWeight:700, color:m.color}}>{m.value}</div>
+                  <div style={{fontSize:9, color:"#666", marginTop:2}}>{m.unit}</div>
+                  <div style={{fontSize:10, color:"#888"}}>{m.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{marginBottom:12}}>
+              <div style={{fontSize:11,color:"#555",letterSpacing:1,textTransform:"uppercase",marginBottom:6}}>Fats</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+                {[
+                  {label:"Fibre",      value:`${selectedLog.fibre_g}g`,        color:"#34d399"},
+                  {label:"Sugar",      value:`${selectedLog.sugar_g}g`,         color:"#f472b6"},
+                  {label:"Saturated",  value:`${selectedLog.saturated_fat_g}g`, color:"#fb923c"},
+                  {label:"Trans Fat",  value:`${selectedLog.trans_fat_g}g`,     color:"#f87171"},
+                  {label:"Cholesterol",value:`${selectedLog.cholesterol_mg}mg`, color:"#facc15"},
+                  {label:"Sodium",     value:`${selectedLog.sodium_mg}mg`,      color:"#60a5fa"},
+                ].map(m=>(
+                  <div key={m.label} style={{background:"rgba(255,255,255,0.03)",borderRadius:8,
+                    border:"1px solid rgba(255,255,255,0.06)",padding:"8px 10px",
+                    display:"flex",flexDirection:"column",gap:2}}>
+                    <span style={{fontSize:13,fontWeight:600,color:m.color}}>{m.value}</span>
+                    <span style={{fontSize:10,color:"#555"}}>{m.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={{marginBottom:12}}>
+              <div style={{fontSize:11,color:"#555",letterSpacing:1,textTransform:"uppercase",marginBottom:6}}>Minerals</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+                {[
+                  {label:"Potassium", value:`${selectedLog.potassium_mg}mg`, color:"#a78bfa"},
+                  {label:"Calcium",   value:`${selectedLog.calcium_mg}mg`,   color:"#34d399"},
+                  {label:"Iron",      value:`${selectedLog.iron_mg}mg`,      color:"#f87171"},
+                  {label:"Magnesium", value:`${selectedLog.magnesium_mg}mg`, color:"#60a5fa"},
+                  {label:"Phosphorus",value:`${selectedLog.phosphorus_mg}mg`,color:"#facc15"},
+                  {label:"Zinc",      value:`${selectedLog.zinc_mg}mg`,      color:"#fb923c"},
+                ].map(m=>(
+                  <div key={m.label} style={{background:"rgba(255,255,255,0.03)",borderRadius:8,
+                    border:"1px solid rgba(255,255,255,0.06)",padding:"8px 10px",
+                    display:"flex",flexDirection:"column",gap:2}}>
+                    <span style={{fontSize:13,fontWeight:600,color:m.color}}>{m.value}</span>
+                    <span style={{fontSize:10,color:"#555"}}>{m.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={{marginBottom:12}}>
+              <div style={{fontSize:11,color:"#555",letterSpacing:1,textTransform:"uppercase",marginBottom:6}}>Vitamins</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+                {[
+                  {label:"Vitamin A",  value:`${selectedLog.vitamin_a_ug}μg`,  color:"#f59e0b"},
+                  {label:"Vitamin C",  value:`${selectedLog.vitamin_c_mg}mg`,  color:"#34d399"},
+                  {label:"Vitamin D",  value:`${selectedLog.vitamin_d_ug}μg`,  color:"#facc15"},
+                  {label:"Vitamin E",  value:`${selectedLog.vitamin_e_mg}mg`,  color:"#fb923c"},
+                  {label:"Vitamin K",  value:`${selectedLog.vitamin_k_ug}μg`,  color:"#a78bfa"},
+                  {label:"Vitamin B12",value:`${selectedLog.vitamin_b12_ug}μg`,color:"#60a5fa"},
+                  {label:"Vitamin B6", value:`${selectedLog.vitamin_b6_mg}mg`, color:"#f472b6"},
+                  {label:"Folate",     value:`${selectedLog.folate_ug}μg`,     color:"#34d399"},
+                ].map(m=>(
+                  <div key={m.label} style={{background:"rgba(255,255,255,0.03)",borderRadius:8,
+                    border:"1px solid rgba(255,255,255,0.06)",padding:"8px 10px",
+                    display:"flex",flexDirection:"column",gap:2}}>
+                    <span style={{fontSize:13,fontWeight:600,color:m.color}}>{m.value}</span>
+                    <span style={{fontSize:10,color:"#555"}}>{m.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {selectedLog.main_ingredients?.length > 0 && (
+              <div style={{marginBottom:16}}>
+                <div style={{fontSize:11,color:"#555",marginBottom:6,letterSpacing:1,textTransform:"uppercase"}}>Detected</div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+                  {selectedLog.main_ingredients.map(ing=>(
+                    <span key={ing} style={{background:"rgba(255,255,255,0.05)",borderRadius:6,
+                      padding:"4px 10px",fontSize:12,color:"#aaa",border:"1px solid rgba(255,255,255,0.08)"}}>
+                      {ing}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {logs.filter(l=>l.type==="food").length > 0 && (
         <div style={{marginTop:32}}>
           <div style={{fontSize:11,color:"#555",letterSpacing:1,textTransform:"uppercase",marginBottom:12}}>Recent</div>
-          {logs.filter(l=>l.type==="food").slice(0,5).map(log=>(
-            <div key={log.id} style={{display:"flex",alignItems:"center",gap:12,marginBottom:10,
-              background:"rgba(255,255,255,0.03)",borderRadius:12,
-              border:"1px solid rgba(255,255,255,0.06)",padding:"10px 14px"}}>
+          {[...logs.filter(l=>l.type==="food")]
+            .sort((a,b) => (b.date+b.time).localeCompare(a.date+a.time))
+            .slice(0,10)
+            .map(log=>(
+            <div key={log.id}
+              onClick={() => setSelectedLog(log)}
+              style={{display:"flex",alignItems:"center",gap:12,marginBottom:10,
+                background:"rgba(255,255,255,0.03)",borderRadius:12,
+                border:"1px solid rgba(255,255,255,0.06)",padding:"10px 14px",
+                cursor:"pointer", transition:"background 0.15s",
+              }}
+              onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.06)"}
+              onMouseLeave={e=>e.currentTarget.style.background="rgba(255,255,255,0.03)"}
+            >
               {log.image
-                ? <img src={log.image} alt="" style={{width:44,height:44,borderRadius:8,objectFit:"cover"}} />
+                ? <img src={log.image} alt="" style={{width:44,height:44,borderRadius:8,objectFit:"cover",flexShrink:0}} />
                 : <div style={{width:44,height:44,borderRadius:8,background:"rgba(99,102,241,0.15)",
                     border:"1px solid rgba(99,102,241,0.2)",display:"flex",alignItems:"center",
-                    justifyContent:"center",fontSize:20}}>✏️</div>
+                    justifyContent:"center",fontSize:20,flexShrink:0}}>✏️</div>
               }
               <div style={{flex:1,minWidth:0}}>
                 <div style={{fontSize:13,fontWeight:600,color:"#ddd",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{log.meal_name}</div>
                 <div style={{fontSize:11,color:"#555"}}>{fmt(log.date)} · {log.time} · {log.calories} kcal</div>
               </div>
-              <div style={{fontSize:16,fontWeight:700,color:scoreColor(log.quality_score)}}>{log.quality_score}</div>
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                <div style={{fontSize:16,fontWeight:700,color:scoreColor(log.quality_score)}}>{log.quality_score}</div>
+                <div style={{fontSize:14,color:"#444"}}>›</div>
+              </div>
             </div>
           ))}
         </div>
