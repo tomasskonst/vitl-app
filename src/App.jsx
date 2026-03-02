@@ -54,9 +54,26 @@ const WOL_DIMS = [
 
 const MOOD_PERIODS = ["Morning", "Afternoon", "Evening"];
 
+const getCurrentPeriod = () => {
+  const h = new Date().getHours();
+  if (h >= 6  && h < 12) return "Morning";
+  if (h >= 12 && h < 18) return "Afternoon";
+  return "Evening";
+};
+
+const getNextPeriodTime = () => {
+  const h = new Date().getHours();
+  if (h >= 6  && h < 12) return "12:00";
+  if (h >= 12 && h < 18) return "18:00";
+  return "06:00";
+};
+
 const emptyMental = () => ({
   date: today(),
-  moods: { Morning: 5, Afternoon: 5, Evening: 5 },
+  moods:        { Morning: 5, Afternoon: 5, Evening: 5 },
+  energyLevels: { Morning: 5, Afternoon: 5, Evening: 5 },
+  stressLevels: { Morning: 5, Afternoon: 5, Evening: 5 },
+  savedPeriods: [],
   social: false,
   workHours: 8,
   sleepHours: 7.5,
@@ -97,13 +114,16 @@ const loadLogs = async () => {
 
   const mentalLogs = (mental || []).map(l => ({
     ...l,
-    type:        "mental",
-    workHours:   l.work_hours,
-    sleepHours:  l.sleep_hours,
-    stressLevel: l.stress_level,
-    energyLevel: l.energy_level,
-    avgMood:     l.avg_mood,
-    wolAvg:      l.wol_avg,
+    type:         "mental",
+    workHours:    l.work_hours,
+    sleepHours:   l.sleep_hours,
+    stressLevel:  l.stress_level,
+    energyLevel:  l.energy_level,
+    energyLevels: l.energy_levels ?? { Morning: 5, Afternoon: 5, Evening: 5 },
+    stressLevels: l.stress_levels ?? { Morning: 5, Afternoon: 5, Evening: 5 },
+    savedPeriods: l.saved_periods ?? [],
+    avgMood:      l.avg_mood,
+    wolAvg:       l.wol_avg,
   }));
 
   const foodLogs = (food || []).map(l => ({ ...l, type: "food" }));
@@ -113,19 +133,22 @@ const loadLogs = async () => {
 
 const saveMentalLog = async (entry) => {
   const { error } = await supabase.from("mental_logs").upsert({
-    id:           entry.id,
-    date:         entry.date,
-    time:         entry.time,
-    moods:        entry.moods,
-    social:       entry.social,
-    work_hours:   entry.workHours,
-    sleep_hours:  entry.sleepHours,
-    stress_level: entry.stressLevel,
-    energy_level: entry.energyLevel,
-    notes:        entry.notes,
-    wol:          entry.wol,
-    avg_mood:     entry.avgMood,
-    wol_avg:      entry.wolAvg,
+    id:            entry.id,
+    date:          entry.date,
+    time:          entry.time,
+    moods:         entry.moods,
+    energy_levels: entry.energyLevels,
+    stress_levels: entry.stressLevels,
+    saved_periods: entry.savedPeriods,
+    social:        entry.social,
+    work_hours:    entry.workHours,
+    sleep_hours:   entry.sleepHours,
+    stress_level:  entry.stressLevel,
+    energy_level:  entry.energyLevel,
+    notes:         entry.notes,
+    wol:           entry.wol,
+    avg_mood:      entry.avgMood,
+    wol_avg:       entry.wolAvg,
   });
   if (error) console.error("Error saving mental log:", error);
 };
@@ -916,136 +939,240 @@ const [selectedLog, setSelectedLog] = useState(null);
 
 // ── Mental Page ─────────────────────────────────────────────────────────────
 function MentalPage({ logs, setLogs }) {
-  const [entry, setEntry] = useState(emptyMental());
-  const [tab, setTab] = useState("checkin");
-  const [saved, setSaved] = useState(false);
+  const currentPeriod = getCurrentPeriod();
+
+  const buildEntry = () => {
+    const todayLog = logs.find(l => l.type === "mental" && l.date === today());
+    if (todayLog) {
+      return {
+        date:         todayLog.date,
+        moods:        todayLog.moods        ?? { Morning: 5, Afternoon: 5, Evening: 5 },
+        energyLevels: todayLog.energyLevels ?? { Morning: 5, Afternoon: 5, Evening: 5 },
+        stressLevels: todayLog.stressLevels ?? { Morning: 5, Afternoon: 5, Evening: 5 },
+        savedPeriods: todayLog.savedPeriods ?? [],
+        social:       todayLog.social       ?? false,
+        workHours:    todayLog.workHours    ?? 8,
+        sleepHours:   todayLog.sleepHours   ?? 7.5,
+        stressLevel:  todayLog.stressLevel  ?? 5,
+        energyLevel:  todayLog.energyLevel  ?? 5,
+        notes:        todayLog.notes        ?? "",
+        wol:          todayLog.wol          ?? Object.fromEntries(WOL_DIMS.map(d => [d.key, 5])),
+      };
+    }
+    return emptyMental();
+  };
+
+  const [entry, setEntry]       = useState(buildEntry);
+  const [tab, setTab]           = useState("checkin");
+  const [saved, setSaved]       = useState(false);
   const [expandWol, setExpandWol] = useState(false);
 
+  const isPeriodLocked = entry.savedPeriods?.includes(currentPeriod);
+
   const set = (path, val) => {
+    if (isPeriodLocked) return;
     setEntry(prev => {
-      const next = {...prev};
+      const next = { ...prev };
       if (path.includes(".")) {
-        const [a,b] = path.split(".");
-        next[a] = {...next[a],[b]:val};
+        const [a, b] = path.split(".");
+        next[a] = { ...next[a], [b]: val };
       } else { next[path] = val; }
       return next;
     });
     setSaved(false);
   };
 
-  const avgMood = (Object.values(entry.moods).reduce((a,b)=>a+b,0)/3).toFixed(1);
-  const wolAvg  = (Object.values(entry.wol).reduce((a,b)=>a+b,0)/WOL_DIMS.length).toFixed(1);
+  const avgMood = (Object.values(entry.moods).reduce((a, b) => a + b, 0) / 3).toFixed(1);
+  const wolAvg  = (Object.values(entry.wol).reduce((a, b) => a + b, 0) / WOL_DIMS.length).toFixed(1);
 
   const saveEntry = async () => {
-   const log = {
-      id:      Date.now(),
+    if (isPeriodLocked) return;
+    const newSavedPeriods = [...(entry.savedPeriods ?? []), currentPeriod];
+    const updatedEntry = { ...entry, savedPeriods: newSavedPeriods };
+    const existingLog = logs.find(l => l.type === "mental" && l.date === today());
+    const log = {
+      id:      existingLog?.id ?? Date.now(),
       type:    "mental",
-      ...entry,
-      time:    new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}),
+      ...updatedEntry,
+      time:    new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
       avgMood: parseFloat(avgMood),
       wolAvg:  parseFloat(wolAvg),
     };
     await saveMentalLog(log);
-    setLogs(prev => [log, ...prev.filter(l => !(l.type === "mental" && l.date === entry.date))]);
+    setLogs(prev => [log, ...prev.filter(l => !(l.type === "mental" && l.date === today()))]);
+    setEntry(updatedEntry);
     setSaved(true);
   };
 
-  const mentalLogs = logs.filter(l=>l.type==="mental").sort((a,b)=>b.date.localeCompare(a.date));
+  const mentalLogs = logs.filter(l => l.type === "mental").sort((a, b) => b.date.localeCompare(a.date));
+
+  const periodEmoji = { Morning: "🌅", Afternoon: "☀️", Evening: "🌙" };
 
   return (
-    <div style={{maxWidth:480,margin:"0 auto",paddingBottom:120}}>
-      <div style={{display:"flex",gap:0,background:"rgba(255,255,255,0.04)",
-        borderRadius:12,margin:"20px 20px 0",border:"1px solid rgba(255,255,255,0.06)"}}>
-        {["checkin","history"].map(t=>(
-          <button key={t} onClick={()=>setTab(t)} style={{
-            flex:1,padding:"10px",border:"none",borderRadius:10,
-            background:tab===t?"rgba(99,102,241,0.3)":"transparent",
-            color:tab===t?"#a5b4fc":"#555",
-            fontSize:13,fontWeight:tab===t?600:400,cursor:"pointer",transition:"all 0.2s",
+    <div style={{ maxWidth: 480, margin: "0 auto", paddingBottom: 120 }}>
+      <div style={{
+        display: "flex", gap: 0, background: "rgba(255,255,255,0.04)",
+        borderRadius: 12, margin: "20px 20px 0", border: "1px solid rgba(255,255,255,0.06)",
+      }}>
+        {["checkin", "history"].map(t => (
+          <button key={t} onClick={() => setTab(t)} style={{
+            flex: 1, padding: "10px", border: "none", borderRadius: 10,
+            background: tab === t ? "rgba(99,102,241,0.3)" : "transparent",
+            color: tab === t ? "#a5b4fc" : "#555",
+            fontSize: 13, fontWeight: tab === t ? 600 : 400, cursor: "pointer", transition: "all 0.2s",
           }}>
-            {t==="checkin"?"Today's Check-in":"History"}
+            {t === "checkin" ? "Today's Check-in" : "History"}
           </button>
         ))}
       </div>
 
-      {tab==="checkin" && (
-        <div style={{padding:"20px"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+      {tab === "checkin" && (
+        <div style={{ padding: "20px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
             <div>
-              <h2 style={{margin:0,fontSize:20,fontWeight:700,color:"#f0f0f8"}}>Daily Check-in</h2>
-              <div style={{fontSize:12,color:"#555",marginTop:2}}>
-                {new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"})}
+              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#f0f0f8" }}>Daily Check-in</h2>
+              <div style={{ fontSize: 12, color: "#555", marginTop: 2 }}>
+                {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
               </div>
             </div>
-            <div style={{textAlign:"center"}}>
-              <div style={{fontSize:24,fontWeight:700,color:scoreColor(parseFloat(avgMood))}}>{avgMood}</div>
-              <div style={{fontSize:10,color:"#555"}}>avg mood</div>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 24, fontWeight: 700, color: scoreColor(parseFloat(avgMood)) }}>{avgMood}</div>
+              <div style={{ fontSize: 10, color: "#555" }}>avg mood</div>
             </div>
           </div>
 
-          <div style={{background:"rgba(255,255,255,0.03)",borderRadius:14,
-            border:"1px solid rgba(255,255,255,0.06)",padding:"16px",marginBottom:14}}>
-            <div style={{fontSize:11,color:"#555",letterSpacing:1,textTransform:"uppercase",marginBottom:14}}>Mood</div>
-            {MOOD_PERIODS.map(period=>(
-              <div key={period} style={{marginBottom:14}}>
-                <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-                  <span style={{fontSize:13,color:"#aaa"}}>{period}</span>
-                  <span style={{fontSize:14,fontWeight:700,color:scoreColor(entry.moods[period])}}>{entry.moods[period]}</span>
-                </div>
-                <Slider value={entry.moods[period]} onChange={v=>set(`moods.${period}`,v)} />
+          {/* Period indicator */}
+          <div style={{
+            background: isPeriodLocked ? "rgba(255,255,255,0.02)" : "rgba(99,102,241,0.1)",
+            borderRadius: 12, padding: "10px 14px", marginBottom: 14,
+            border: `1px solid ${isPeriodLocked ? "rgba(255,255,255,0.05)" : "rgba(99,102,241,0.3)"}`,
+            display: "flex", justifyContent: "space-between", alignItems: "center",
+          }}>
+            <div style={{ fontSize: 13, color: isPeriodLocked ? "#555" : "#a5b4fc", fontWeight: 600 }}>
+              {periodEmoji[currentPeriod]} {currentPeriod} check-in
+            </div>
+            {isPeriodLocked ? (
+              <div style={{ fontSize: 12, color: "#555" }}>
+                Next entry at <span style={{ color: "#a5b4fc", fontWeight: 700 }}>{getNextPeriodTime()}</span>
               </div>
-            ))}
+            ) : (
+              <div style={{ fontSize: 11, color: "#666" }}>Now open</div>
+            )}
           </div>
 
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
-            {[
-              {key:"energyLevel",label:"Energy",icon:"⚡"},
-              {key:"stressLevel",label:"Stress",icon:"🌊",invert:true},
-            ].map(m=>{
-              const v=entry[m.key];
-              const c=m.invert?(v<=4?"#4ade80":v<=6?"#facc15":"#f87171"):scoreColor(v);
-              return (
-                <div key={m.key} style={{background:"rgba(255,255,255,0.03)",borderRadius:12,
-                  border:"1px solid rgba(255,255,255,0.06)",padding:"12px 14px"}}>
-                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
-                    <span style={{fontSize:12,color:"#888"}}>{m.icon} {m.label}</span>
-                    <span style={{fontSize:15,fontWeight:700,color:c}}>{v}</span>
+          {/* Completed periods pills */}
+          {entry.savedPeriods?.length > 0 && (
+            <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+              {["Morning", "Afternoon", "Evening"].map(p => (
+                entry.savedPeriods.includes(p) && (
+                  <div key={p} style={{
+                    fontSize: 11, padding: "4px 10px", borderRadius: 20,
+                    background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)",
+                    color: "#4ade80",
+                  }}>
+                    {periodEmoji[p]} {p} ✓
                   </div>
-                  <Slider value={v} min={1} max={10} step={0.5} onChange={val=>set(m.key,val)} color={c} />
+                )
+              ))}
+            </div>
+          )}
+
+          {/* Mood + Energy + Stress side by side */}
+          <div style={{
+            background: "rgba(255,255,255,0.03)", borderRadius: 14,
+            border: "1px solid rgba(255,255,255,0.06)", padding: "16px", marginBottom: 14,
+            opacity: isPeriodLocked ? 0.45 : 1,
+            transition: "opacity 0.3s",
+            pointerEvents: isPeriodLocked ? "none" : "auto",
+          }}>
+            <div style={{ fontSize: 11, color: "#555", letterSpacing: 1, textTransform: "uppercase", marginBottom: 14 }}>
+              {periodEmoji[currentPeriod]} {currentPeriod}
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              {/* Left: Mood slider */}
+              <div>
+                <div style={{ fontSize: 11, color: "#888", marginBottom: 6, letterSpacing: 0.5 }}>😊 Mood</div>
+                <div style={{ fontSize: 22, fontWeight: 700, color: scoreColor(entry.moods[currentPeriod]), marginBottom: 4 }}>
+                  {entry.moods[currentPeriod]}
                 </div>
-              );
-            })}
+                <Slider
+                  value={entry.moods[currentPeriod]}
+                  onChange={v => set(`moods.${currentPeriod}`, v)}
+                />
+              </div>
+
+              {/* Right: Energy + Stress stacked */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <div style={{
+                  background: "rgba(255,255,255,0.03)", borderRadius: 10,
+                  border: "1px solid rgba(255,255,255,0.06)", padding: "10px 12px",
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                    <span style={{ fontSize: 11, color: "#888" }}>⚡ Energy</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: scoreColor(entry.energyLevels[currentPeriod]) }}>
+                      {entry.energyLevels[currentPeriod]}
+                    </span>
+                  </div>
+                  <Slider
+                    value={entry.energyLevels[currentPeriod]}
+                    onChange={v => set(`energyLevels.${currentPeriod}`, v)}
+                    color={scoreColor(entry.energyLevels[currentPeriod])}
+                  />
+                </div>
+
+                <div style={{
+                  background: "rgba(255,255,255,0.03)", borderRadius: 10,
+                  border: "1px solid rgba(255,255,255,0.06)", padding: "10px 12px",
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                    <span style={{ fontSize: 11, color: "#888" }}>🌊 Stress</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: entry.stressLevels[currentPeriod] <= 4 ? "#4ade80" : entry.stressLevels[currentPeriod] <= 6 ? "#facc15" : "#f87171" }}>
+                      {entry.stressLevels[currentPeriod]}
+                    </span>
+                  </div>
+                  <Slider
+                    value={entry.stressLevels[currentPeriod]}
+                    onChange={v => set(`stressLevels.${currentPeriod}`, v)}
+                    color={entry.stressLevels[currentPeriod] <= 4 ? "#4ade80" : entry.stressLevels[currentPeriod] <= 6 ? "#facc15" : "#f87171"}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div style={{background:"rgba(255,255,255,0.03)",borderRadius:14,
-            border:"1px solid rgba(255,255,255,0.06)",padding:"16px",marginBottom:14}}>
-            <div onClick={()=>setExpandWol(!expandWol)}
-              style={{display:"flex",justifyContent:"space-between",alignItems:"center",cursor:"pointer"}}>
-              <div style={{fontSize:11,color:"#555",letterSpacing:1,textTransform:"uppercase"}}>Wheel of Life</div>
-              <div style={{display:"flex",alignItems:"center",gap:8}}>
-                <span style={{fontSize:16,fontWeight:700,color:scoreColor(parseFloat(wolAvg))}}>{wolAvg}</span>
-                <span style={{fontSize:12,color:"#555"}}>{expandWol?"▲":"▼"}</span>
+          {/* Wheel of Life */}
+          <div style={{
+            background: "rgba(255,255,255,0.03)", borderRadius: 14,
+            border: "1px solid rgba(255,255,255,0.06)", padding: "16px", marginBottom: 14,
+          }}>
+            <div onClick={() => setExpandWol(!expandWol)}
+              style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
+              <div style={{ fontSize: 11, color: "#555", letterSpacing: 1, textTransform: "uppercase" }}>Wheel of Life</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 16, fontWeight: 700, color: scoreColor(parseFloat(wolAvg)) }}>{wolAvg}</span>
+                <span style={{ fontSize: 12, color: "#555" }}>{expandWol ? "▲" : "▼"}</span>
               </div>
             </div>
             {expandWol ? (
-              <div style={{marginTop:16}}>
-                {WOL_DIMS.map(dim=>(
-                  <div key={dim.key} style={{marginBottom:14}}>
-                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-                      <span style={{fontSize:13,color:"#aaa"}}>{dim.icon} {dim.label}</span>
-                      <span style={{fontSize:14,fontWeight:700,color:scoreColor(entry.wol[dim.key])}}>{entry.wol[dim.key]}</span>
+              <div style={{ marginTop: 16 }}>
+                {WOL_DIMS.map(dim => (
+                  <div key={dim.key} style={{ marginBottom: 14 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                      <span style={{ fontSize: 13, color: "#aaa" }}>{dim.icon} {dim.label}</span>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: scoreColor(entry.wol[dim.key]) }}>{entry.wol[dim.key]}</span>
                     </div>
-                    <Slider value={entry.wol[dim.key]} onChange={v=>set(`wol.${dim.key}`,v)} />
+                    <Slider value={entry.wol[dim.key]} onChange={v => set(`wol.${dim.key}`, v)} />
                   </div>
                 ))}
               </div>
             ) : (
-              <div style={{display:"flex",gap:4,marginTop:12,flexWrap:"wrap"}}>
-                {WOL_DIMS.map(dim=>(
+              <div style={{ display: "flex", gap: 4, marginTop: 12, flexWrap: "wrap" }}>
+                {WOL_DIMS.map(dim => (
                   <div key={dim.key} title={dim.label} style={{
-                    width:28,height:28,borderRadius:6,background:scoreBg(entry.wol[dim.key]),
-                    border:`1px solid ${scoreColor(entry.wol[dim.key])}44`,
-                    display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,
+                    width: 28, height: 28, borderRadius: 6, background: scoreBg(entry.wol[dim.key]),
+                    border: `1px solid ${scoreColor(entry.wol[dim.key])}44`,
+                    display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14,
                   }}>{dim.icon}</div>
                 ))}
               </div>
@@ -1053,67 +1180,97 @@ function MentalPage({ logs, setLogs }) {
           </div>
 
           <textarea placeholder="How was your day? Any observations…" value={entry.notes}
-            onChange={e=>set("notes",e.target.value)}
-            style={{width:"100%",minHeight:80,background:"rgba(255,255,255,0.03)",
-              border:"1px solid rgba(255,255,255,0.08)",borderRadius:12,
-              padding:"12px 14px",color:"#ddd",fontSize:13,resize:"none",
-              outline:"none",boxSizing:"border-box",fontFamily:"inherit",marginBottom:14}} />
+            onChange={e => set("notes", e.target.value)}
+            style={{
+              width: "100%", minHeight: 80, background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12,
+              padding: "12px 14px", color: "#ddd", fontSize: 13, resize: "none",
+              outline: "none", boxSizing: "border-box", fontFamily: "inherit", marginBottom: 14,
+            }} />
 
           {saved ? (
-            <div style={{textAlign:"center",padding:"14px",background:"rgba(74,222,128,0.1)",
-              borderRadius:12,color:"#4ade80",fontSize:14,fontWeight:600}}>✓  Saved to Supabase</div>
+            <div style={{
+              textAlign: "center", padding: "14px", background: "rgba(74,222,128,0.1)",
+              borderRadius: 12, color: "#4ade80", fontSize: 14, fontWeight: 600,
+            }}>✓  Saved to Supabase</div>
           ) : (
-            <button onClick={saveEntry} style={{
-              width:"100%",padding:"14px",borderRadius:12,border:"none",
-              background:"linear-gradient(135deg,#6366f1,#8b5cf6)",
-              color:"#fff",fontSize:15,fontWeight:600,cursor:"pointer"}}>
-              Save Check-in
+            <button onClick={saveEntry} disabled={isPeriodLocked} style={{
+              width: "100%", padding: "14px", borderRadius: 12, border: "none",
+              background: isPeriodLocked
+                ? "rgba(99,102,241,0.2)"
+                : "linear-gradient(135deg,#6366f1,#8b5cf6)",
+              color: isPeriodLocked ? "#555" : "#fff",
+              fontSize: 15, fontWeight: 600,
+              cursor: isPeriodLocked ? "not-allowed" : "pointer",
+            }}>
+              {isPeriodLocked ? `Next entry at ${getNextPeriodTime()}` : "Save Check-in"}
             </button>
           )}
         </div>
       )}
 
-      {tab==="history" && (
-        <div style={{padding:"20px"}}>
-          {mentalLogs.length===0 ? (
-            <div style={{textAlign:"center",padding:"60px 20px",color:"#555"}}>
-              <div style={{fontSize:36,marginBottom:12}}>📓</div>
+      {tab === "history" && (
+        <div style={{ padding: "20px" }}>
+          {mentalLogs.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "60px 20px", color: "#555" }}>
+              <div style={{ fontSize: 36, marginBottom: 12 }}>📓</div>
               <div>No entries yet. Complete your first check-in!</div>
             </div>
-          ) : mentalLogs.map(log=>(
-            <div key={log.id} style={{background:"rgba(255,255,255,0.03)",borderRadius:14,
-              border:"1px solid rgba(255,255,255,0.06)",padding:"16px",marginBottom:12}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
+          ) : mentalLogs.map(log => (
+            <div key={log.id} style={{
+              background: "rgba(255,255,255,0.03)", borderRadius: 14,
+              border: "1px solid rgba(255,255,255,0.06)", padding: "16px", marginBottom: 12,
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
                 <div>
-                  <div style={{fontSize:14,fontWeight:600,color:"#ddd"}}>{fmt(log.date)}</div>
-                  <div style={{fontSize:11,color:"#555",marginTop:2}}>
-                    {log.workHours}h work · {log.sleepHours}h sleep · {log.social?"social ✓":"solo"}
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "#ddd" }}>{fmt(log.date)}</div>
+                  <div style={{ fontSize: 11, color: "#555", marginTop: 2 }}>
+                    {log.workHours}h work · {log.sleepHours}h sleep · {log.social ? "social ✓" : "solo"}
                   </div>
                 </div>
-                <div style={{display:"flex",gap:10}}>
-                  <div style={{textAlign:"center"}}>
-                    <div style={{fontSize:18,fontWeight:700,color:scoreColor(log.avgMood)}}>{log.avgMood?.toFixed(1)}</div>
-                    <div style={{fontSize:9,color:"#555"}}>mood</div>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: scoreColor(log.avgMood) }}>{log.avgMood?.toFixed(1)}</div>
+                    <div style={{ fontSize: 9, color: "#555" }}>mood</div>
                   </div>
-                  <div style={{textAlign:"center"}}>
-                    <div style={{fontSize:18,fontWeight:700,color:scoreColor(log.wolAvg)}}>{log.wolAvg?.toFixed(1)}</div>
-                    <div style={{fontSize:9,color:"#555"}}>life</div>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: scoreColor(log.wolAvg) }}>{log.wolAvg?.toFixed(1)}</div>
+                    <div style={{ fontSize: 9, color: "#555" }}>life</div>
                   </div>
                 </div>
               </div>
-              <div style={{display:"flex",gap:6,marginBottom:8}}>
-                {MOOD_PERIODS.map(p=>(
-                  <div key={p} style={{flex:1,background:scoreBg(log.moods?.[p]||5),
-                    border:`1px solid ${scoreColor(log.moods?.[p]||5)}33`,
-                    borderRadius:8,padding:"6px 4px",textAlign:"center"}}>
-                    <div style={{fontSize:13,fontWeight:700,color:scoreColor(log.moods?.[p]||5)}}>{log.moods?.[p]||"-"}</div>
-                    <div style={{fontSize:9,color:"#555"}}>{p.slice(0,3)}</div>
-                  </div>
-                ))}
+
+              {/* Per-period breakdown */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 8 }}>
+                {["Morning", "Afternoon", "Evening"].map(p => {
+                  const done = log.savedPeriods?.includes(p);
+                  return (
+                    <div key={p} style={{
+                      background: done ? scoreBg(log.moods?.[p] || 5) : "rgba(255,255,255,0.02)",
+                      border: `1px solid ${done ? scoreColor(log.moods?.[p] || 5) + "33" : "rgba(255,255,255,0.04)"}`,
+                      borderRadius: 8, padding: "8px 6px", textAlign: "center",
+                      opacity: done ? 1 : 0.35,
+                    }}>
+                      <div style={{ fontSize: 11, marginBottom: 4 }}>{periodEmoji[p]}</div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: done ? scoreColor(log.moods?.[p] || 5) : "#444" }}>
+                        {done ? log.moods?.[p] : "—"}
+                      </div>
+                      <div style={{ fontSize: 9, color: "#555", marginTop: 1 }}>{p.slice(0, 3)}</div>
+                      {done && (
+                        <div style={{ fontSize: 9, color: "#666", marginTop: 3 }}>
+                          ⚡{log.energyLevels?.[p] ?? "—"} 🌊{log.stressLevels?.[p] ?? "—"}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
+
               {log.notes && (
-                <div style={{fontSize:12,color:"#666",fontStyle:"italic",
-                  borderTop:"1px solid rgba(255,255,255,0.05)",paddingTop:8,marginTop:4}}>
+                <div style={{
+                  fontSize: 12, color: "#666", fontStyle: "italic",
+                  borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 8, marginTop: 4,
+                }}>
                   "{log.notes}"
                 </div>
               )}
