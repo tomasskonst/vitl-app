@@ -1440,19 +1440,6 @@ function JournalPage({ logs, setLogs }) {
 
   return (
     <div style={{ maxWidth: 480, margin: "0 auto", paddingBottom: 120 }}>
-      const getCurrentPeriod = () => {
-  const h = new Date().getHours();
-  if (h >= 6  && h < 12) return "Morning";
-  if (h >= 12 && h < 18) return "Afternoon";
-  return "Evening";
-};
-
-const getNextPeriodTime = () => {
-  const h = new Date().getHours();
-  if (h >= 6  && h < 12) return "12:00";
-  if (h >= 12 && h < 18) return "18:00";
-  return "06:00";
-};
 
       {tab === "checkin" && (
         <div style={{ padding: "20px" }}>
