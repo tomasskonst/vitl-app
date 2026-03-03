@@ -131,13 +131,26 @@ const saveMoodLog = async (log) => {
 
 const saveJournalLog = async (log) => {
   const { error } = await supabase.from("journal_logs").upsert({
-    id:          log.id,
-    date:        log.date,
-    time:        log.time,
-    work_hours:  log.work_hours,
-    sleep_hours: log.sleep_hours,
-    social:      log.social,
-    notes:       log.notes,
+    id:                log.id,
+    date:              log.date,
+    time:              log.time,
+    work_hours:        log.work_hours,
+    sleep_hours:       log.sleep_hours,
+    social:            log.social,
+    notes:             log.notes,
+    caffeine_cups:     log.caffeine_cups,
+    last_coffee_hour:  log.last_coffee_hour,
+    smoking:           log.smoking,
+    smoking_amount:    log.smoking_amount,
+    screen_bed:        log.screen_bed,
+    alcohol_amount:    log.alcohol_amount,
+    last_alcohol_hour: log.last_alcohol_hour,
+    reading:           log.reading,
+    journaling:        log.journaling,
+    illness:           log.illness,
+    injury:            log.injury,
+    shared_bed:        log.shared_bed,
+    funny_business:    log.funny_business,
   });
   if (error) console.error("Error saving journal log:", error);
 };
@@ -441,7 +454,6 @@ function MoodPage({ moodLogs, setMoodLogs }) {
 
   const allLogs = [...moodLogs].sort((a, b) => (b.date + b.period).localeCompare(a.date + a.period));
 
-  // Group by date for history
   const groupedByDate = allLogs.reduce((acc, log) => {
     if (!acc[log.date]) acc[log.date] = {};
     acc[log.date][log.period] = log;
@@ -481,7 +493,6 @@ function MoodPage({ moodLogs, setMoodLogs }) {
             </div>
           </div>
 
-          {/* Period indicator */}
           <div style={{
             background: isPeriodLocked ? "rgba(255,255,255,0.02)" : "rgba(99,102,241,0.1)",
             borderRadius: 12, padding: "10px 14px", marginBottom: 14,
@@ -500,7 +511,6 @@ function MoodPage({ moodLogs, setMoodLogs }) {
             )}
           </div>
 
-          {/* Completed periods */}
           {savedPeriods.length > 0 && (
             <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
               {MOOD_PERIODS.map(p => savedPeriods.includes(p) && (
@@ -515,7 +525,6 @@ function MoodPage({ moodLogs, setMoodLogs }) {
           )}
 
           <div style={{ opacity: isPeriodLocked ? 0.45 : 1, pointerEvents: isPeriodLocked ? "none" : "auto", transition: "opacity 0.3s" }}>
-            {/* Mood */}
             <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)", padding: "12px 14px", marginBottom: 10 }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
                 <span style={{ fontSize: 12, color: "#888" }}>{periodEmoji[currentPeriod]} {currentPeriod} Mood</span>
@@ -524,7 +533,6 @@ function MoodPage({ moodLogs, setMoodLogs }) {
               <Slider value={mood} onChange={setMood} color={scoreColor(mood)} />
             </div>
 
-            {/* Energy */}
             <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)", padding: "12px 14px", marginBottom: 10 }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
                 <span style={{ fontSize: 12, color: "#888" }}>⚡ {currentPeriod} Energy</span>
@@ -533,7 +541,6 @@ function MoodPage({ moodLogs, setMoodLogs }) {
               <Slider value={energy} onChange={setEnergy} color={scoreColor(energy)} />
             </div>
 
-            {/* Stress */}
             <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)", padding: "12px 14px", marginBottom: 10 }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
                 <span style={{ fontSize: 12, color: "#888" }}>🌊 {currentPeriod} Stress</span>
@@ -631,27 +638,79 @@ function JournalPage({ journalLogs, setJournalLogs }) {
 
   const todayLog = journalLogs.find(l => l.date === today());
 
-  const [workHours,  setWorkHours]  = useState(todayLog?.work_hours  ?? 8);
-  const [sleepHours, setSleepHours] = useState(todayLog?.sleep_hours ?? 7.5);
-  const [social,     setSocial]     = useState(todayLog?.social      ?? false);
-  const [notes,      setNotes]      = useState(todayLog?.notes       ?? "");
-  const [saved,      setSaved]      = useState(false);
+  const [workHours,        setWorkHours]        = useState(todayLog?.work_hours        ?? 8);
+  const [sleepHours,       setSleepHours]       = useState(todayLog?.sleep_hours       ?? 7.5);
+  const [social,           setSocial]           = useState(todayLog?.social            ?? false);
+  const [notes,            setNotes]            = useState(todayLog?.notes             ?? "");
+  const [saved,            setSaved]            = useState(false);
+  const [caffeineCups,     setCaffeineCups]     = useState(todayLog?.caffeine_cups     ?? 0);
+  const [lastCoffeeHour,   setLastCoffeeHour]   = useState(todayLog?.last_coffee_hour  ?? 8);
+  const [smoking,          setSmoking]          = useState(todayLog?.smoking           ?? false);
+  const [smokingAmount,    setSmokingAmount]    = useState(todayLog?.smoking_amount    ?? 1);
+  const [screenBed,        setScreenBed]        = useState(todayLog?.screen_bed        ?? 0);
+  const [alcoholAmount,    setAlcoholAmount]    = useState(todayLog?.alcohol_amount    ?? 0);
+  const [lastAlcoholHour,  setLastAlcoholHour]  = useState(todayLog?.last_alcohol_hour ?? 20);
+  const [reading,          setReading]          = useState(todayLog?.reading           ?? false);
+  const [journaling,       setJournaling]       = useState(todayLog?.journaling        ?? false);
+  const [illness,          setIllness]          = useState(todayLog?.illness           ?? false);
+  const [injury,           setInjury]           = useState(todayLog?.injury            ?? false);
+  const [sharedBed,        setSharedBed]        = useState(todayLog?.shared_bed        ?? false);
+  const [funnyBusiness,    setFunnyBusiness]    = useState(todayLog?.funny_business    ?? false);
 
-  const workColor  = workHours  <= 8   ? "#92400e" : workHours  <= 10 ? "#c2410c" : "#991b1b";
-  const sleepColor = sleepHours >= 7.5 ? "#92400e" : sleepHours >= 6  ? "#c2410c" : "#991b1b";
+  const workColor    = workHours  <= 8   ? "#92400e" : workHours  <= 10 ? "#c2410c" : "#991b1b";
+  const sleepColor   = sleepHours >= 7.5 ? "#92400e" : sleepHours >= 6  ? "#c2410c" : "#991b1b";
+  const caffeineColor = caffeineCups <= 2 ? "#92400e" : caffeineCups <= 4 ? "#c2410c" : "#991b1b";
+  const screenColor  = screenBed <= 20 ? "#92400e" : screenBed <= 60 ? "#c2410c" : "#991b1b";
+  const alcoholColor = alcoholAmount === 0 ? "#92400e" : alcoholAmount <= 3 ? "#c2410c" : "#991b1b";
+
   const TP = "rgba(20,6,0,0.88)";
   const TS = "rgba(20,6,0,0.88)";
   const TM = "rgba(20,6,0,0.88)";
 
+  const formatHour = (h) => {
+    const hNorm = ((h % 24) + 24) % 24;
+    const period = hNorm >= 12 ? "pm" : "am";
+    const display = hNorm % 12 === 0 ? 12 : hNorm % 12;
+    return `${display}${period}`;
+  };
+
+  // Pill toggle button
+  const ToggleBtn = ({ value, onToggle, labelYes = "Yes ✓", labelNo = "No" }) => (
+    <button onClick={onToggle} style={{
+      background: value ? "rgba(255,255,255,0.45)" : "rgba(200,190,185,0.22)",
+      border: `0.5px solid ${value ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.2)"}`,
+      borderRadius: 20, padding: "7px 18px", cursor: "pointer",
+      color: value ? "rgba(20,6,0,0.85)" : "rgba(20,6,0,0.38)",
+      fontSize: 13, fontWeight: 700, transition: "all 0.22s",
+      backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+      whiteSpace: "nowrap",
+    }}>
+      {value ? labelYes : labelNo}
+    </button>
+  );
+
   const saveEntry = async () => {
     const log = {
-      id:          todayLog?.id ?? Date.now(),
-      date:        today(),
-      time:        new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
-      work_hours:  workHours,
-      sleep_hours: sleepHours,
+      id:                todayLog?.id ?? Date.now(),
+      date:              today(),
+      time:              new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
+      work_hours:        workHours,
+      sleep_hours:       sleepHours,
       social,
       notes,
+      caffeine_cups:     caffeineCups,
+      last_coffee_hour:  lastCoffeeHour,
+      smoking,
+      smoking_amount:    smokingAmount,
+      screen_bed:        screenBed,
+      alcohol_amount:    alcoholAmount,
+      last_alcohol_hour: lastAlcoholHour,
+      reading,
+      journaling,
+      illness,
+      injury,
+      shared_bed:        sharedBed,
+      funny_business:    funnyBusiness,
     };
     await saveJournalLog(log);
     setJournalLogs(prev => [log, ...prev.filter(l => l.date !== today())]);
@@ -683,6 +742,8 @@ function JournalPage({ journalLogs, setJournalLogs }) {
         .j-save:active { transform: scale(0.985); }
         .j-hcard { border-radius: 20px; border: 0.5px solid rgba(255,255,255,0.28); padding: 16px 18px; margin-bottom: 10px; background: rgba(200,190,185,0.28); backdrop-filter: blur(50px) saturate(160%) brightness(1.08); -webkit-backdrop-filter: blur(50px) saturate(160%) brightness(1.08); box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
         .j-chip { background: rgba(255,255,255,0.2); border-radius: 12px; border: 0.5px solid rgba(255,255,255,0.25); padding: 10px 8px; text-align: center; }
+        .j-side-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .j-side-card { background: rgba(200,190,185,0.28); backdrop-filter: blur(50px) saturate(160%) brightness(1.08); -webkit-backdrop-filter: blur(50px) saturate(160%) brightness(1.08); border-radius: 20px; border: 0.5px solid rgba(255,255,255,0.28); box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 14px 16px; }
       `}</style>
 
       <div className="j-scroll">
@@ -700,6 +761,8 @@ function JournalPage({ journalLogs, setJournalLogs }) {
 
           {tab === "checkin" && (
             <div style={{ padding: "18px 20px 0" }}>
+
+              {/* ── Work Hours (full width) ── */}
               <GlassCard>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
                   <span style={{ fontSize: 13, color: TP, fontWeight: 500 }}>💼  Work hours</span>
@@ -710,33 +773,116 @@ function JournalPage({ journalLogs, setJournalLogs }) {
                 <AuraSlider value={workHours} min={0} max={16} step={0.5} accentColor={workColor} sliderKey="work" onChange={setWorkHours} />
               </GlassCard>
 
+              {/* ── Caffeine cups + Last coffee (side by side) ── */}
+              <div className="j-side-grid">
+                <div className="j-side-card">
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
+                    <span style={{ fontSize: 12, color: TP, fontWeight: 500 }}>☕ Caffeine</span>
+                    <span style={{ fontSize: 20, fontWeight: 700, color: caffeineColor }}>
+                      {caffeineCups}<span style={{ fontSize: 11, color: TP, marginLeft: 2 }}>cups</span>
+                    </span>
+                  </div>
+                  <AuraSlider value={caffeineCups} min={0} max={7} step={1} accentColor={caffeineColor} sliderKey="caff" onChange={setCaffeineCups} />
+                </div>
+                <div className="j-side-card">
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
+                    <span style={{ fontSize: 12, color: TP, fontWeight: 500 }}>🕐 Last coffee</span>
+                    <span style={{ fontSize: 20, fontWeight: 700, color: "#92400e" }}>{formatHour(lastCoffeeHour)}</span>
+                  </div>
+                  <AuraSlider value={lastCoffeeHour} min={6} max={22} step={0.5} accentColor="#92400e" sliderKey="lcoff" onChange={setLastCoffeeHour} />
+                </div>
+              </div>
+
+              {/* ── Smoking toggle + How much (side by side) ── */}
+              <div className="j-side-grid">
+                <div className="j-side-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                  <div style={{ fontSize: 12, color: TP, fontWeight: 500, marginBottom: 10 }}>🚬 Smoking</div>
+                  <ToggleBtn value={smoking} onToggle={() => setSmoking(!smoking)} />
+                </div>
+                <div className="j-side-card" style={{ opacity: smoking ? 1 : 0.4, transition: "opacity 0.2s" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
+                    <span style={{ fontSize: 12, color: TP, fontWeight: 500 }}>💨 How much</span>
+                    <span style={{ fontSize: 20, fontWeight: 700, color: "#991b1b" }}>{smokingAmount}</span>
+                  </div>
+                  <AuraSlider value={smokingAmount} min={1} max={10} step={1} accentColor="#991b1b" sliderKey="smoke" onChange={setSmokingAmount} />
+                </div>
+              </div>
+
+              {/* ── Screen before bed (full width) ── */}
               <GlassCard>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
-                  <span style={{ fontSize: 13, color: TP, fontWeight: 500 }}>🌙  Sleep hours</span>
-                  <span style={{ fontSize: 22, fontWeight: 700, color: sleepColor }}>
-                    {sleepHours}<span style={{ fontSize: 13, fontWeight: 600, color: TP, marginLeft: 2 }}>h</span>
+                  <span style={{ fontSize: 13, color: TP, fontWeight: 500 }}>📱  Screentime before bed</span>
+                  <span style={{ fontSize: 22, fontWeight: 700, color: screenColor }}>
+                    {screenBed}<span style={{ fontSize: 13, fontWeight: 600, color: TP, marginLeft: 2 }}>min</span>
                   </span>
                 </div>
-                <AuraSlider value={sleepHours} min={3} max={12} step={0.5} accentColor={sleepColor} sliderKey="sleep" onChange={setSleepHours} />
+                <AuraSlider value={screenBed} min={0} max={120} step={5} accentColor={screenColor} sliderKey="screen" onChange={setScreenBed} />
               </GlassCard>
 
+              {/* ── Alcohol amount + Last alcohol glass (side by side) ── */}
+              <div className="j-side-grid">
+                <div className="j-side-card">
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
+                    <span style={{ fontSize: 12, color: TP, fontWeight: 500 }}>🍷 Alcohol</span>
+                    <span style={{ fontSize: 20, fontWeight: 700, color: alcoholColor }}>{alcoholAmount}</span>
+                  </div>
+                  <AuraSlider value={alcoholAmount} min={0} max={10} step={1} accentColor={alcoholColor} sliderKey="alc" onChange={setAlcoholAmount} />
+                </div>
+                <div className="j-side-card" style={{ opacity: alcoholAmount > 0 ? 1 : 0.4, transition: "opacity 0.2s" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
+                    <span style={{ fontSize: 12, color: TP, fontWeight: 500 }}>🕐 Last drink</span>
+                    <span style={{ fontSize: 20, fontWeight: 700, color: "#92400e" }}>{formatHour(lastAlcoholHour)}</span>
+                  </div>
+                  <AuraSlider value={lastAlcoholHour} min={10} max={29} step={0.5} accentColor="#92400e" sliderKey="lalc" onChange={setLastAlcoholHour} />
+                </div>
+              </div>
+
+              {/* ── Reading + Journaling (side by side) ── */}
+              <div className="j-side-grid">
+                <div className="j-side-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                  <div style={{ fontSize: 12, color: TP, fontWeight: 500, marginBottom: 10 }}>📖 Reading</div>
+                  <ToggleBtn value={reading} onToggle={() => setReading(!reading)} />
+                </div>
+                <div className="j-side-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                  <div style={{ fontSize: 12, color: TP, fontWeight: 500, marginBottom: 10 }}>✍️ Journaling</div>
+                  <ToggleBtn value={journaling} onToggle={() => setJournaling(!journaling)} />
+                </div>
+              </div>
+
+              {/* ── Social activity (full width) ── */}
               <GlassCard style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 18px" }}>
                 <div>
                   <div style={{ fontSize: 14, color: TP, fontWeight: 600, marginBottom: 3 }}>🤝  Social activity</div>
                   <div style={{ fontSize: 12, color: TS }}>Time spent with others today?</div>
                 </div>
-                <button onClick={() => setSocial(!social)} style={{
-                  background: social ? "rgba(255,255,255,0.45)" : "rgba(200,190,185,0.22)",
-                  border: `0.5px solid ${social ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.2)"}`,
-                  borderRadius: 20, padding: "7px 18px", cursor: "pointer",
-                  color: social ? "rgba(20,6,0,0.85)" : "rgba(20,6,0,0.38)",
-                  fontSize: 13, fontWeight: 700, transition: "all 0.22s",
-                  backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
-                }}>
-                  {social ? "Yes ✓" : "No"}
-                </button>
+                <ToggleBtn value={social} onToggle={() => setSocial(!social)} />
               </GlassCard>
 
+              {/* ── Illness + Injury (side by side) ── */}
+              <div className="j-side-grid">
+                <div className="j-side-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                  <div style={{ fontSize: 12, color: TP, fontWeight: 500, marginBottom: 10 }}>🤒 Illness</div>
+                  <ToggleBtn value={illness} onToggle={() => setIllness(!illness)} />
+                </div>
+                <div className="j-side-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                  <div style={{ fontSize: 12, color: TP, fontWeight: 500, marginBottom: 10 }}>🤕 Injury</div>
+                  <ToggleBtn value={injury} onToggle={() => setInjury(!injury)} />
+                </div>
+              </div>
+
+              {/* ── Shared bed + Funny business (side by side) ── */}
+              <div className="j-side-grid">
+                <div className="j-side-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                  <div style={{ fontSize: 12, color: TP, fontWeight: 500, marginBottom: 10 }}>🛏️ Shared bed</div>
+                  <ToggleBtn value={sharedBed} onToggle={() => setSharedBed(!sharedBed)} />
+                </div>
+                <div className="j-side-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                  <div style={{ fontSize: 12, color: TP, fontWeight: 500, marginBottom: 10 }}>😏 Funny business</div>
+                  <ToggleBtn value={funnyBusiness} onToggle={() => setFunnyBusiness(!funnyBusiness)} />
+                </div>
+              </div>
+
+              {/* ── Reflections ── */}
               <GlassCard style={{ padding: "16px 18px" }}>
                 <div style={{ fontSize: 11, color: TM, letterSpacing: 1.5, textTransform: "uppercase", fontWeight: 700, marginBottom: 8 }}>Reflections</div>
                 <textarea className="j-ta" placeholder="Write anything — thoughts, observations, what went well…" value={notes} onChange={e => setNotes(e.target.value)} />
@@ -765,7 +911,8 @@ function JournalPage({ journalLogs, setJournalLogs }) {
                     <div style={{ fontFamily: "'DM Serif Display', Georgia, serif", fontSize: 18, color: TP }}>{fmt(log.date)}</div>
                     <div style={{ fontSize: 11, color: TM }}>{log.time}</div>
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 12 }}>
+                  {/* Row 1: Work, Sleep, Social */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 8 }}>
                     {[
                       { label: "Work",   value: `${log.work_hours ?? "—"}h`,  color: (log.work_hours ?? 8) <= 8 ? "#92400e" : "#c2410c" },
                       { label: "Sleep",  value: `${log.sleep_hours ?? "—"}h`, color: (log.sleep_hours ?? 0) >= 7.5 ? "#92400e" : "#c2410c" },
@@ -775,6 +922,35 @@ function JournalPage({ journalLogs, setJournalLogs }) {
                         <div style={{ fontSize: 14, fontWeight: 700, color: item.color, marginBottom: 3 }}>{item.value}</div>
                         <div style={{ fontSize: 10, color: TM, letterSpacing: 0.3 }}>{item.label}</div>
                       </div>
+                    ))}
+                  </div>
+                  {/* Row 2: Caffeine, Screen, Alcohol */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 8 }}>
+                    {[
+                      { label: "Caffeine", value: log.caffeine_cups != null ? `${log.caffeine_cups}c` : "—", color: "#92400e" },
+                      { label: "Screen", value: log.screen_bed != null ? `${log.screen_bed}m` : "—", color: (log.screen_bed ?? 0) <= 20 ? "#92400e" : "#c2410c" },
+                      { label: "Alcohol", value: log.alcohol_amount != null ? `${log.alcohol_amount}` : "—", color: (log.alcohol_amount ?? 0) === 0 ? "#92400e" : "#c2410c" },
+                    ].map(item => (
+                      <div key={item.label} className="j-chip">
+                        <div style={{ fontSize: 14, fontWeight: 700, color: item.color, marginBottom: 3 }}>{item.value}</div>
+                        <div style={{ fontSize: 10, color: TM, letterSpacing: 0.3 }}>{item.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Row 3: toggles */}
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: log.notes ? 10 : 0 }}>
+                    {[
+                      { label: "📖 Read",    val: log.reading },
+                      { label: "✍️ Journal", val: log.journaling },
+                      { label: "🚬 Smoked",  val: log.smoking },
+                      { label: "🤒 Ill",     val: log.illness },
+                      { label: "🤕 Injured", val: log.injury },
+                      { label: "🛏️ Shared",  val: log.shared_bed },
+                      { label: "😏 Funny",   val: log.funny_business },
+                    ].filter(t => t.val).map(t => (
+                      <span key={t.label} style={{ fontSize: 11, background: "rgba(255,255,255,0.25)", borderRadius: 20, padding: "3px 10px", color: TP, fontWeight: 600, border: "0.5px solid rgba(255,255,255,0.3)" }}>
+                        {t.label}
+                      </span>
                     ))}
                   </div>
                   {log.notes ? (
@@ -858,7 +1034,6 @@ function WOLPage({ wolLogs, setWolLogs }) {
             </div>
           </div>
 
-          {/* Lock banner */}
           <div style={{
             background: isLocked ? "rgba(255,255,255,0.02)" : "rgba(99,102,241,0.1)",
             borderRadius: 12, padding: "10px 14px", marginBottom: 14,
@@ -1136,7 +1311,6 @@ function FoodPage({ foodLogs, setFoodLogs }) {
         </div>
       )}
 
-      {/* Selected log modal */}
       {selectedLog && (
         <div style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)", overflowY: "auto", padding: "24px 20px 60px" }}>
           <div style={{ maxWidth: 480, margin: "0 auto" }}>
@@ -1209,7 +1383,6 @@ function InsightsPage({ moodLogs, journalLogs, foodLogs, wolLogs }) {
     </div>
   );
 
-  // Group mood logs by date, calculate daily avg mood
   const moodByDate = moodLogs.reduce((acc, l) => {
     if (!acc[l.date]) acc[l.date] = [];
     acc[l.date].push(l.mood);
@@ -1231,7 +1404,6 @@ function InsightsPage({ moodLogs, journalLogs, foodLogs, wolLogs }) {
   const goodSleepDays = journalLogs.filter(l => l.sleep_hours >= 7.5);
   const poorSleepDays = journalLogs.filter(l => l.sleep_hours < 6.5);
 
-  // Helper: get avg mood for dates matching a filter
   const avgMoodForDates = (dates) => {
     const moods = dates.flatMap(l => moodByDate[l.date] || []);
     return moods.length ? (moods.reduce((a, b) => a + b, 0) / moods.length).toFixed(1) : null;
