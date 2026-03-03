@@ -419,7 +419,7 @@ function HomePage({ moodLogs, journalLogs, foodLogs, wolLogs, setPage }) {
 }
 
 // ── Mood Page ────────────────────────────────────────────────────────────────
-function MoodPage({ moodLogs, setMoodLogs }) {
+function MoodPage({ moodLogs, setMoodLogs, wolLogs, setWolLogs }) {
   const currentPeriod = getCurrentPeriod();
   const periodEmoji = { Morning: "🌅", Afternoon: "☀️", Evening: "🌙" };
 
@@ -466,7 +466,7 @@ function MoodPage({ moodLogs, setMoodLogs }) {
         display: "flex", gap: 0, background: "rgba(255,255,255,0.04)",
         borderRadius: 12, margin: "20px 20px 0", border: "1px solid rgba(255,255,255,0.06)",
       }}>
-        {[{ key: "checkin", label: "Check-in" }, { key: "history", label: "History" }].map(t => (
+        {[{ key: "checkin", label: "Daily" }, { key: "wol", label: "Weekly" }].map(t => (
           <button key={t.key} onClick={() => setTab(t.key)} style={{
             flex: 1, padding: "10px", border: "none", borderRadius: 10,
             background: tab === t.key ? "rgba(99,102,241,0.3)" : "transparent",
@@ -575,58 +575,8 @@ function MoodPage({ moodLogs, setMoodLogs }) {
         </div>
       )}
 
-      {tab === "history" && (
-        <div style={{ padding: "20px" }}>
-          {Object.keys(groupedByDate).length === 0 ? (
-            <div style={{ textAlign: "center", padding: "60px 20px", color: "#555" }}>
-              <div style={{ fontSize: 36, marginBottom: 12 }}>😶</div>
-              <div>No mood entries yet. Complete your first check-in!</div>
-            </div>
-          ) : Object.entries(groupedByDate).map(([date, periods]) => {
-            const moodVals = Object.values(periods).map(p => p.mood);
-            const avgMood = moodVals.length ? (moodVals.reduce((a, b) => a + b, 0) / moodVals.length).toFixed(1) : null;
-            return (
-              <div key={date} style={{
-                background: "rgba(255,255,255,0.03)", borderRadius: 14,
-                border: "1px solid rgba(255,255,255,0.06)", padding: "16px", marginBottom: 12,
-              }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: "#ddd" }}>{fmt(date)}</div>
-                  {avgMood && (
-                    <div style={{ textAlign: "center" }}>
-                      <div style={{ fontSize: 18, fontWeight: 700, color: scoreColor(parseFloat(avgMood)) }}>{avgMood}</div>
-                      <div style={{ fontSize: 9, color: "#555" }}>avg mood</div>
-                    </div>
-                  )}
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-                  {MOOD_PERIODS.map(p => {
-                    const entry = periods[p];
-                    return (
-                      <div key={p} style={{
-                        background: entry ? scoreBg(entry.mood) : "rgba(255,255,255,0.02)",
-                        border: `1px solid ${entry ? scoreColor(entry.mood) + "33" : "rgba(255,255,255,0.04)"}`,
-                        borderRadius: 8, padding: "8px 6px", textAlign: "center",
-                        opacity: entry ? 1 : 0.35,
-                      }}>
-                        <div style={{ fontSize: 11, marginBottom: 4 }}>{ { Morning: "🌅", Afternoon: "☀️", Evening: "🌙" }[p] }</div>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: entry ? scoreColor(entry.mood) : "#444" }}>
-                          {entry ? entry.mood : "—"}
-                        </div>
-                        <div style={{ fontSize: 9, color: "#555", marginTop: 1 }}>{p.slice(0, 3)}</div>
-                        {entry && (
-                          <div style={{ fontSize: 9, color: "#666", marginTop: 3 }}>
-                            ⚡{entry.energy} 🌊{entry.stress}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+      {tab === "wol" && (
+        <WOLPage wolLogs={wolLogs} setWolLogs={setWolLogs} />
       )}
     </div>
   );
@@ -1035,7 +985,7 @@ function WOLPage({ wolLogs, setWolLogs }) {
         display: "flex", gap: 0, background: "rgba(255,255,255,0.04)",
         borderRadius: 12, margin: "20px 20px 0", border: "1px solid rgba(255,255,255,0.06)",
       }}>
-        {[{ key: "checkin", label: "This Week" }, { key: "history", label: "History" }].map(t => (
+        {[{ key: "checkin", label: "This Week" }].map(t => (
           <button key={t.key} onClick={() => setTab(t.key)} style={{
             flex: 1, padding: "10px", border: "none", borderRadius: 10,
             background: tab === t.key ? "rgba(99,102,241,0.3)" : "transparent",
@@ -1109,41 +1059,7 @@ function WOLPage({ wolLogs, setWolLogs }) {
         </div>
       )}
 
-      {tab === "history" && (
-        <div style={{ padding: "20px" }}>
-          {sortedLogs.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "60px 20px", color: "#555" }}>
-              <div style={{ fontSize: 36, marginBottom: 12 }}>🎯</div>
-              <div>No weekly check-ins yet.</div>
-            </div>
-          ) : sortedLogs.map(log => (
-            <div key={log.id} style={{
-              background: "rgba(255,255,255,0.03)", borderRadius: 14,
-              border: "1px solid rgba(255,255,255,0.06)", padding: "16px", marginBottom: 12,
-            }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: "#ddd" }}>{formatWeekRange(log.week_key)}</div>
-                <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: 18, fontWeight: 700, color: scoreColor(log.wol_avg) }}>{log.wol_avg?.toFixed(1)}</div>
-                  <div style={{ fontSize: 9, color: "#555" }}>avg</div>
-                </div>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
-                {WOL_DIMS.map(dim => (
-                  <div key={dim.key} style={{
-                    display: "flex", alignItems: "center", justifyContent: "space-between",
-                    background: scoreBg(log[dim.key] ?? 5), borderRadius: 8, padding: "6px 10px",
-                    border: `1px solid ${scoreColor(log[dim.key] ?? 5)}22`,
-                  }}>
-                    <span style={{ fontSize: 11, color: "#888" }}>{dim.icon} {dim.label}</span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: scoreColor(log[dim.key] ?? 5) }}>{log[dim.key] ?? "—"}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      
     </div>
   );
 }
@@ -1527,7 +1443,6 @@ function BottomNav({ page, setPage }) {
     { key: "home",     icon: "⌂",  label: "Home"    },
     { key: "mood",     icon: "✦",  label: "Mood"    },
     { key: "journal",  icon: "≡",  label: "Journal" },
-    { key: "wol",      icon: "◎",  label: "Life"    },
     { key: "food",     icon: "♥",  label: "Food"    },
     { key: "insights", icon: "⚡", label: "Insights" },
   ];
@@ -1603,9 +1518,9 @@ export default function App() {
       ) : (
         <div style={{ animation: "fadeUp 0.3s ease" }}>
           {page === "home"     && <HomePage     moodLogs={moodLogs} journalLogs={journalLogs} foodLogs={foodLogs} wolLogs={wolLogs} setPage={setPage} />}
-          {page === "mood"     && <MoodPage     moodLogs={moodLogs} setMoodLogs={setMoodLogs} />}
+          {page === "mood"     && <MoodPage     moodLogs={moodLogs} setMoodLogs={setMoodLogs} wolLogs={wolLogs} setWolLogs={setWolLogs} />}
           {page === "journal"  && <JournalPage  journalLogs={journalLogs} setJournalLogs={setJournalLogs} />}
-          {page === "wol"      && <WOLPage      wolLogs={wolLogs} setWolLogs={setWolLogs} />}
+
           {page === "food"     && <FoodPage     foodLogs={foodLogs} setFoodLogs={setFoodLogs} />}
           {page === "insights" && <InsightsPage moodLogs={moodLogs} journalLogs={journalLogs} foodLogs={foodLogs} wolLogs={wolLogs} />}
         </div>
