@@ -1464,7 +1464,7 @@ useEffect(() => { window.scrollTo(0, 0); }, []);
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap');
         * { box-sizing: border-box; }
-        .j-scroll { overflow-y: auto; flex: 1; min-height: 0; }
+        .j-scroll { overflow-y: auto; flex: 1; min-height: 0; padding-top: env(safe-area-inset-top); }
         .j-scroll::-webkit-scrollbar { display: none; }
         .j-bg { position: absolute; inset: 0; z-index: 0; background: linear-gradient(160deg, #ff6a00 0%, #ee0979 60%, #c0392b 100%); }
         .j-title { font-family: 'DM Serif Display', Georgia, serif; font-size: 38px; color: #fff; letter-spacing: -0.5px; line-height: 1.05; text-shadow: 0 2px 20px rgba(0,0,0,0.3); margin: 0; }
