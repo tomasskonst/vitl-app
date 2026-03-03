@@ -1456,7 +1456,7 @@ function JournalPage({ logs, setLogs }) {
   return (
     <div style={{
       width: "100%", height: "100vh",
-      background: "#1a0800",
+      background: "linear-gradient(160deg, #ff6a00 0%, #ee0979 60%, #c0392b 100%)",
       display: "flex", flexDirection: "column",
       fontFamily: "'DM Sans', system-ui, sans-serif",
       overflow: "hidden", position: "relative",
@@ -1739,7 +1739,7 @@ export default function App() {
         }
       `}</style>
 
-      {page !== "home" && (
+      {page !== "home" && page !== "journal" && (
         <div style={{padding:"16px 20px 12px",borderBottom:"1px solid rgba(255,255,255,0.05)",
           display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <div>
