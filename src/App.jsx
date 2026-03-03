@@ -1698,7 +1698,9 @@ function InsightsPage({ logs }) {
     </div>
   );
 
-}function BottomNav({ page, setPage }) {
+}
+
+function BottomNav({ page, setPage }) {
   cconst tabs = [
     { key: "home",     icon: "⌂",  label: "Home"     },
     { key: "journal",  icon: "≡",  label: "Journal"  },
