@@ -1871,7 +1871,7 @@ export default function App() {
         }
       `}</style>
 
-      {page !== "home" && page !== "journal" && (
+      {false && (
         <div style={{padding:"16px 20px 12px",borderBottom:"1px solid rgba(255,255,255,0.05)",
           display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <div>
