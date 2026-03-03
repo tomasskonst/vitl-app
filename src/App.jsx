@@ -1438,7 +1438,7 @@ function JournalPage({ logs, setLogs }) {
   const [entry, setEntry] = useState({ date: today(), workHours: 8, sleepHours: 7.5, social: false, notes: "" });
   const [tab, setTab] = useState("checkin");
   const [saved, setSaved] = useState(false);
-
+useEffect(() => { window.scrollTo(0, 0); }, []);
   const set = (key, val) => { setEntry(prev => ({ ...prev, [key]: val })); setSaved(false); };
   const saveEntry = () => {
     const log = { id: Date.now(), type: "mental", ...entry, time: new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) };
