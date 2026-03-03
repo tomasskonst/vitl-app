@@ -636,7 +636,20 @@ function MoodPage({ moodLogs, setMoodLogs }) {
 function JournalPage({ journalLogs, setJournalLogs }) {
   const [tab, setTab] = useState("checkin");
 
-  const todayLog = journalLogs.find(l => l.date === today());
+  const now = new Date();
+  const currentHour = now.getHours();
+  const effectiveDate = currentHour < 6
+    ? new Date(now.getTime() - 86400000).toISOString().split("T")[0]
+    : today();
+  const todayLog = journalLogs.find(l => l.date === effectiveDate);
+  const isLocked = !!todayLog;
+
+  const nextUnlockStr = () => {
+    const d = new Date();
+    d.setDate(d.getDate() + (currentHour < 6 ? 0 : 1));
+    d.setHours(6, 0, 0, 0);
+    return d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" }) + " at 6:00am";
+  };
 
   const [workHours,        setWorkHours]        = useState(todayLog?.work_hours        ?? 8);
   const [sleepHours,       setSleepHours]       = useState(todayLog?.sleep_hours       ?? 7.5);
@@ -690,9 +703,10 @@ function JournalPage({ journalLogs, setJournalLogs }) {
   );
 
   const saveEntry = async () => {
+    if (isLocked) return;
     const log = {
       id:                todayLog?.id ?? Date.now(),
-      date:              today(),
+      date:              effectiveDate,
       time:              new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
       work_hours:        workHours,
       sleep_hours:       sleepHours,
@@ -761,6 +775,17 @@ function JournalPage({ journalLogs, setJournalLogs }) {
 
           {tab === "checkin" && (
             <div style={{ padding: "18px 20px 120px" }}>
+              {isLocked && (
+                <div style={{
+                  background: "rgba(200,190,185,0.2)", borderRadius: 16, padding: "14px 18px",
+                  marginBottom: 14, border: "0.5px solid rgba(255,255,255,0.2)",
+                  display: "flex", justifyContent: "space-between", alignItems: "center",
+                }}>
+                  <div style={{ fontSize: 13, color: "rgba(20,6,0,0.55)", fontWeight: 600 }}>📓 Today's entry is saved</div>
+                  <div style={{ fontSize: 11, color: "rgba(20,6,0,0.38)" }}>Unlocks {nextUnlockStr()}</div>
+                </div>
+              )}
+              <div style={{ opacity: isLocked ? 0.45 : 1, pointerEvents: isLocked ? "none" : "auto", transition: "opacity 0.3s" }}>
 
               {/* ── Work Hours (full width) ── */}
               <GlassCard>
@@ -884,8 +909,13 @@ function JournalPage({ journalLogs, setJournalLogs }) {
 
 
 
+              </div>
               <div style={{ marginTop: 4 }}>
-                {saved ? (
+                {isLocked ? (
+                  <div style={{ textAlign: "center", padding: "15px", borderRadius: 18, background: "rgba(200,190,185,0.2)", border: "0.5px solid rgba(255,255,255,0.2)", color: "rgba(20,6,0,0.45)", fontSize: 14, fontWeight: 700 }}>
+                    ✓  Saved · Unlocks {nextUnlockStr()}
+                  </div>
+                ) : saved ? (
                   <div style={{ textAlign: "center", padding: "15px", borderRadius: 18, background: "rgba(200,190,185,0.3)", border: "0.5px solid rgba(255,255,255,0.28)", color: "#14532d", fontSize: 14, fontWeight: 700 }}>✓  Saved</div>
                 ) : (
                   <button className="j-save" onClick={saveEntry}>Save entry</button>
