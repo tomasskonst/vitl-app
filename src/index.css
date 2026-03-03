@@ -29,6 +29,10 @@ html, body, #root {
   padding: 0;
 }
 
+#root {
+  padding-top: env(safe-area-inset-top);
+}
+
 body {
   display: block;
   min-width: 320px;
