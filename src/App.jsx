@@ -1395,11 +1395,6 @@ function MentalPage({ logs, setLogs }) {
 const JOURNAL_BG = "https://imgur.com/a/1h9xT4F";
 const MOCK_LOGS = [{"id": 1, "type": "mental", "date": "2026-03-02", "workHours": 8, "sleepHours": 7.5, "social": true, "notes": "Great day, felt focused and energised.", "time": "21:30"}, {"id": 2, "type": "mental", "date": "2026-03-01", "workHours": 10, "sleepHours": 6, "social": false, "notes": "Long day but got a lot done.", "time": "22:15"}, {"id": 3, "type": "mental", "date": "2026-02-28", "workHours": 7, "sleepHours": 8, "social": true, "notes": "", "time": "20:45"}];
 
-function today() { return new Date().toISOString().slice(0, 10); }
-function fmt(dateStr) {
-  const d = new Date(dateStr + "T12:00:00");
-  return d.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
-}
 
 function AuraSlider({ value, onChange, min = 0, max = 16, step = 0.5, accentColor = "#92400e", sliderKey = "s" }) {
   const pct = ((value - min) / (max - min)) * 100;
