@@ -1697,6 +1697,132 @@ function InsightsPage({ logs }) {
       )}
     </div>
   );
+
+}function BottomNav({ page, setPage }) {
+  const tabs = [
+    { key: "home",     icon: "⌂",  label: "Home"     },
+    { key: "journal",  icon: "≡",  label: "Journal"  },
+    { key: "mental",   icon: "✦",  label: "Fitness"  },
+    { key: "food",     icon: "♥",  label: "Biology"  },
+    { key: "insights", icon: "◎",  label: "Insights" },
+  ];
+
+  return (
+    <>
+      <style>{`
+        .nav-pill-wrap {
+          position: fixed;
+          bottom: 0; left: 0; right: 0;
+          z-index: 9999;
+          display: flex;
+          align-items: flex-end;
+          justify-content: center;
+          padding: 0 20px 28px;
+          pointer-events: none;
+        }
+        .nav-pill {
+          display: flex;
+          align-items: center;
+          background: #1c1c2a;
+          border-radius: 40px;
+          padding: 6px 8px;
+          gap: 2px;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07);
+          border: 1px solid rgba(255,255,255,0.07);
+          pointer-events: all;
+        }
+        .nav-btn {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 3px;
+          padding: 8px 18px;
+          border-radius: 32px;
+          border: none;
+          background: transparent;
+          cursor: pointer;
+          transition: background 0.18s, transform 0.14s;
+          min-width: 60px;
+        }
+        .nav-btn:active { transform: scale(0.93); }
+        .nav-btn.active {
+          background: #2a2a3e;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.09);
+        }
+        .nav-btn-icon {
+          font-size: 20px;
+          line-height: 1;
+          color: rgba(255,255,255,0.28);
+          transition: color 0.18s, transform 0.18s;
+        }
+        .nav-btn.active .nav-btn-icon {
+          color: #ffffff;
+          transform: scale(1.08);
+        }
+        .nav-btn-label {
+          font-size: 10px;
+          font-weight: 500;
+          color: rgba(255,255,255,0.28);
+          transition: color 0.18s;
+          font-family: system-ui, -apple-system, sans-serif;
+        }
+        .nav-btn.active .nav-btn-label {
+          color: #ffffff;
+          font-weight: 700;
+        }
+        .nav-plus-btn {
+          width: 52px;
+          height: 52px;
+          border-radius: 50%;
+          background: #2a2a3e;
+          border: 1px solid rgba(255,255,255,0.1);
+          box-shadow: 0 4px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          pointer-events: all;
+          transition: transform 0.14s, background 0.18s;
+          margin-left: 8px;
+          flex-shrink: 0;
+        }
+        .nav-plus-btn:hover { background: #343450; }
+        .nav-plus-btn:active { transform: scale(0.92); }
+        .home-indicator {
+          position: fixed;
+          bottom: 8px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 120px;
+          height: 4px;
+          border-radius: 2px;
+          background: rgba(255,255,255,0.2);
+          z-index: 10000;
+          pointer-events: none;
+        }
+      `}</style>
+
+      <div className="nav-pill-wrap">
+        <div className="nav-pill">
+          {tabs.map(t => (
+            <button
+              key={t.key}
+              className={`nav-btn ${page === t.key ? "active" : ""}`}
+              onClick={() => setPage(t.key)}
+            >
+              <span className="nav-btn-icon">{t.icon}</span>
+              <span className="nav-btn-label">{t.label}</span>
+            </button>
+          ))}
+        </div>
+        <button className="nav-plus-btn" onClick={() => setPage("food")}>
+          <span style={{ fontSize: 22, color: "rgba(255,255,255,0.6)", lineHeight: 1 }}>+</span>
+        </button>
+      </div>
+      <div className="home-indicator" />
+    </>
+  );
 }
 
 // ── Main ────────────────────────────────────────────────────────────────────
@@ -1768,25 +1894,7 @@ export default function App() {
         </div>
       )}
 
-      <div style={{
-        position:"fixed", bottom:0, left:0, right:0, zIndex:50,
-        background:"rgba(13,13,24,0.96)", backdropFilter:"blur(20px)",
-        borderTop:"1px solid rgba(255,255,255,0.06)",
-        display:"flex", padding:"8px 0 24px",
-      }}>
-        {tabs.map(t=>(
-          <button key={t.key} onClick={()=>setPage(t.key)} style={{
-            flex:1, border:"none", background:"transparent",
-            display:"flex", flexDirection:"column", alignItems:"center", gap:3,
-            padding:"6px 0", cursor:"pointer",
-          }}>
-            <div style={{fontSize:20,opacity:page===t.key?1:0.3,transition:"opacity 0.2s"}}>{t.icon}</div>
-            <div style={{fontSize:10,fontWeight:page===t.key?700:400,transition:"all 0.2s",
-              color:page===t.key?"#a5b4fc":"#555"}}>{t.label}</div>
-            {page===t.key && <div style={{width:4,height:4,borderRadius:"50%",background:"#6366f1"}} />}
-          </button>
-        ))}
-      </div>
+      <BottomNav page={page} setPage={setPage} />
     </div>
   );
 }
