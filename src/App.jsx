@@ -727,12 +727,12 @@ function JournalPage({ journalLogs, setJournalLogs }) {
             <div style={{ padding: "18px 20px 120px" }}>
               {isLocked && (
                 <div style={{
-                  background: "rgba(74,222,128,0.15)", borderRadius: 16, padding: "14px 18px",
-                  marginBottom: 14, border: "1px solid rgba(74,222,128,0.35)",
+                  background: "rgba(74,222,128,0.35)", borderRadius: 16, padding: "14px 18px",
+                  marginBottom: 14, border: "1px solid rgba(74,222,128,0.7)",
                   display: "flex", justifyContent: "space-between", alignItems: "center",
                 }}>
-                  <div style={{ fontSize: 13, color: "rgba(20,80,20,0.85)", fontWeight: 700 }}>✓  Today's entry is saved</div>
-                  <div style={{ fontSize: 11, color: "rgba(20,80,20,0.55)" }}>Unlocks {nextUnlockStr()}</div>
+                  <div style={{ fontSize: 13, color: "rgba(10,60,10,1)", fontWeight: 700 }}>✓  Today's entry is saved</div>
+                  <div style={{ fontSize: 11, color: "rgba(10,60,10,1)" }}>Unlocks {nextUnlockStr()}</div>
                 </div>
               )}
               <div style={{ opacity: isLocked ? 0.45 : 1, pointerEvents: isLocked ? "none" : "auto", transition: "opacity 0.3s" }}>
