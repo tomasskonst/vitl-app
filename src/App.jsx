@@ -760,7 +760,7 @@ function JournalPage({ journalLogs, setJournalLogs }) {
           </div>
 
           {tab === "checkin" && (
-            <div style={{ padding: "18px 20px 0" }}>
+            <div style={{ padding: "18px 20px 120px" }}>
 
               {/* ── Work Hours (full width) ── */}
               <GlassCard>
@@ -882,11 +882,7 @@ function JournalPage({ journalLogs, setJournalLogs }) {
                 </div>
               </div>
 
-              {/* ── Reflections ── */}
-              <GlassCard style={{ padding: "16px 18px" }}>
-                <div style={{ fontSize: 11, color: TM, letterSpacing: 1.5, textTransform: "uppercase", fontWeight: 700, marginBottom: 8 }}>Reflections</div>
-                <textarea className="j-ta" placeholder="Write anything — thoughts, observations, what went well…" value={notes} onChange={e => setNotes(e.target.value)} />
-              </GlassCard>
+
 
               <div style={{ marginTop: 4 }}>
                 {saved ? (
