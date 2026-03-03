@@ -304,7 +304,7 @@ function HomePage({ logs, setPage }) {
         background:"radial-gradient(ellipse 80% 50% at 50% 0%, rgba(59,130,246,0.35) 0%, transparent 70%)",
       }} />
 
-      <div style={{ position:"relative", zIndex:1, padding:"28px 20px 180px" }}>
+      <div style={{ position:"relative", zIndex:1, padding:"calc(env(safe-area-inset-top) + 28px) 20px 180px" }}>
         <div style={{ marginBottom:24 }}>
           <div style={{
             fontSize:11, fontWeight:700, letterSpacing:3,
@@ -551,7 +551,7 @@ const [selectedLog, setSelectedLog] = useState(null);
   };
 
   return (
-    <div style={{ padding:"24px 20px 200px", maxWidth:"100%", margin:"0 auto" }}>
+    <div style={{ padding:"calc(env(safe-area-inset-top) + 24px) 20px 200px", maxWidth:"100%", margin:"0 auto" }}>
       <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700, color:"#f0f0f8" }}>Food Analysis</h2>
       <p style={{ margin:"0 0 20px", fontSize:13, color:"#666" }}>Photo your meal or describe it for an instant nutrition breakdown</p>
 
@@ -1032,7 +1032,7 @@ function MentalPage({ logs, setLogs }) {
   const periodEmoji = { Morning: "🌅", Afternoon: "☀️", Evening: "🌙" };
 
   return (
-    <div style={{ maxWidth: 480, margin: "0 auto", paddingBottom: 120 }}>
+    <div style={{ maxWidth: 480, margin: "0 auto", paddingTop: "env(safe-area-inset-top)", paddingBottom: 120 }}>
       <div style={{
         display: "flex", gap: 0, background: "rgba(255,255,255,0.04)",
         borderRadius: 12, margin: "20px 20px 0", border: "1px solid rgba(255,255,255,0.06)",
@@ -1658,7 +1658,7 @@ function InsightsPage({ logs }) {
   }
 
   return (
-    <div style={{padding:"24px 20px",maxWidth:480,margin:"0 auto"}}>
+    <div style={{padding:"calc(env(safe-area-inset-top) + 24px) 20px 24px",maxWidth:480,margin:"0 auto"}}>
       <h2 style={{margin:"0 0 4px",fontSize:22,fontWeight:700,color:"#f0f0f8"}}>Your Insights</h2>
       <p style={{margin:"0 0 20px",fontSize:13,color:"#666"}}>Patterns from your last {mentalLogs.length} days</p>
 
