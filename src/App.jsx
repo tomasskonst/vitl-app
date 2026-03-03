@@ -1440,7 +1440,6 @@ const NAV_ITEMS = [
 
 function JournalPage({ logs, setLogs }) {
   const [activeNav, setActiveNav] = useState("journal");
-  const [logs, setLogs] = useState(MOCK_LOGS);
   const [entry, setEntry] = useState({ date: today(), workHours: 8, sleepHours: 7.5, social: false, notes: "" });
   const [tab, setTab] = useState("checkin");
   const [saved, setSaved] = useState(false);
