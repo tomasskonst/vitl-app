@@ -1699,11 +1699,11 @@ function InsightsPage({ logs }) {
   );
 
 }function BottomNav({ page, setPage }) {
-  const tabs = [
+  cconst tabs = [
     { key: "home",     icon: "⌂",  label: "Home"     },
     { key: "journal",  icon: "≡",  label: "Journal"  },
-    { key: "mental",   icon: "✦",  label: "Fitness"  },
-    { key: "food",     icon: "♥",  label: "Biology"  },
+    { key: "mental",   icon: "✦",  label: "Mind"     },
+    { key: "food",     icon: "♥",  label: "Food"     },
     { key: "insights", icon: "◎",  label: "Insights" },
   ];
 
@@ -1715,10 +1715,11 @@ function InsightsPage({ logs }) {
           bottom: 0; left: 0; right: 0;
           z-index: 9999;
           display: flex;
-          align-items: flex-end;
+          align-items: center;
           justify-content: center;
-          padding: 0 20px 28px;
+          padding: 0 16px 28px;
           pointer-events: none;
+          gap: 8px;
         }
         .nav-pill {
           display: flex;
@@ -1726,10 +1727,12 @@ function InsightsPage({ logs }) {
           background: #1c1c2a;
           border-radius: 40px;
           padding: 6px 8px;
-          gap: 2px;
+          gap: 0px;
           box-shadow: 0 8px 32px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07);
           border: 1px solid rgba(255,255,255,0.07);
           pointer-events: all;
+          flex: 1;
+          min-width: 0;
         }
         .nav-btn {
           display: flex;
@@ -1737,13 +1740,14 @@ function InsightsPage({ logs }) {
           align-items: center;
           justify-content: center;
           gap: 3px;
-          padding: 8px 18px;
+          padding: 8px 0;
           border-radius: 32px;
           border: none;
           background: transparent;
           cursor: pointer;
           transition: background 0.18s, transform 0.14s;
-          min-width: 60px;
+          flex: 1;
+          min-width: 0;
         }
         .nav-btn:active { transform: scale(0.93); }
         .nav-btn.active {
@@ -1772,8 +1776,8 @@ function InsightsPage({ logs }) {
           font-weight: 700;
         }
         .nav-plus-btn {
-          width: 52px;
-          height: 52px;
+          width: 58px;
+          height: 58px;
           border-radius: 50%;
           background: #2a2a3e;
           border: 1px solid rgba(255,255,255,0.1);
@@ -1784,8 +1788,8 @@ function InsightsPage({ logs }) {
           cursor: pointer;
           pointer-events: all;
           transition: transform 0.14s, background 0.18s;
-          margin-left: 8px;
           flex-shrink: 0;
+          align-self: center;
         }
         .nav-plus-btn:hover { background: #343450; }
         .nav-plus-btn:active { transform: scale(0.92); }
