@@ -1438,7 +1438,7 @@ const NAV_ITEMS = [
   { key: "insights", label: "Insights", icon: "✦"  },
 ];
 
-export default function App() {
+function JournalPage({ logs, setLogs }) {
   const [activeNav, setActiveNav] = useState("journal");
   const [logs, setLogs] = useState(MOCK_LOGS);
   const [entry, setEntry] = useState({ date: today(), workHours: 8, sleepHours: 7.5, social: false, notes: "" });
