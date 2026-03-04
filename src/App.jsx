@@ -98,20 +98,85 @@ const scoreBg = (v) => {
   return "rgba(248,113,113,0.12)";
 };
 
+// ── Weather helpers ──────────────────────────────────────────────────────────
+
+// WMO weather code → description + emoji
+const weatherCodeInfo = (code) => {
+  if (code === 0)              return { label: "Clear",        emoji: "☀️"  };
+  if (code <= 2)               return { label: "Partly cloudy",emoji: "⛅"  };
+  if (code === 3)              return { label: "Overcast",     emoji: "☁️"  };
+  if (code <= 49)              return { label: "Foggy",        emoji: "🌫️"  };
+  if (code <= 59)              return { label: "Drizzle",      emoji: "🌦️"  };
+  if (code <= 69)              return { label: "Rain",         emoji: "🌧️"  };
+  if (code <= 79)              return { label: "Snow",         emoji: "❄️"  };
+  if (code <= 82)              return { label: "Showers",      emoji: "🌧️"  };
+  if (code <= 86)              return { label: "Snow showers", emoji: "🌨️"  };
+  if (code <= 99)              return { label: "Thunderstorm", emoji: "⛈️"  };
+  return { label: "Unknown", emoji: "🌡️" };
+};
+
+const uvLabel = (uv) => {
+  if (uv <= 2)  return { label: "Low",       color: "#4ade80" };
+  if (uv <= 5)  return { label: "Moderate",  color: "#facc15" };
+  if (uv <= 7)  return { label: "High",      color: "#fb923c" };
+  if (uv <= 10) return { label: "Very High", color: "#f87171" };
+  return { label: "Extreme", color: "#c084fc" };
+};
+
+// Fetch weather from Open-Meteo (free, no key needed)
+const fetchWeatherData = async (lat, lon) => {
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+    `&current=temperature_2m,apparent_temperature,cloud_cover,uv_index,weather_code,wind_speed_10m,relative_humidity_2m` +
+    `&timezone=auto`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Weather fetch failed");
+  const data = await res.json();
+  const c = data.current;
+  return {
+    temperature_c:       Math.round(c.temperature_2m),
+    feels_like_c:        Math.round(c.apparent_temperature),
+    cloud_cover_pct:     c.cloud_cover,
+    uv_index:            Math.round(c.uv_index * 10) / 10,
+    weather_code:        c.weather_code,
+    wind_speed_kmh:      Math.round(c.wind_speed_10m),
+    humidity_pct:        c.relative_humidity_2m,
+    latitude:            Math.round(lat * 1000) / 1000,
+    longitude:           Math.round(lon * 1000) / 1000,
+  };
+};
+
+// Get user's geolocation as a Promise
+const getLocation = () =>
+  new Promise((resolve, reject) =>
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+      (err) => reject(err),
+      { timeout: 10000 }
+    )
+  );
+
 // ── Supabase helpers ─────────────────────────────────────────────────────────
 
 const loadAllData = async () => {
-  const [{ data: moodData }, { data: journalData }, { data: wolData }, { data: foodData }] = await Promise.all([
+  const [
+    { data: moodData },
+    { data: journalData },
+    { data: wolData },
+    { data: foodData },
+    { data: weatherData },
+  ] = await Promise.all([
     supabase.from("mood_logs").select("*").order("date", { ascending: false }),
     supabase.from("journal_logs").select("*").order("date", { ascending: false }),
     supabase.from("wol_logs").select("*").order("week_key", { ascending: false }),
     supabase.from("food_logs").select("*").order("date", { ascending: false }),
+    supabase.from("weather_logs").select("*").order("date", { ascending: false }).limit(90),
   ]);
   return {
     moodLogs:    moodData    || [],
     journalLogs: journalData || [],
     wolLogs:     wolData     || [],
     foodLogs:    foodData    || [],
+    weatherLogs: weatherData || [],
   };
 };
 
@@ -215,6 +280,59 @@ const saveFoodLog = async (log) => {
   if (error) console.error("Error saving food log:", error);
 };
 
+const saveWeatherLog = async (log) => {
+  const { error } = await supabase.from("weather_logs").upsert({
+    id:              log.id,
+    date:            log.date,
+    time:            log.time,
+    period:          log.period,
+    temperature_c:   log.temperature_c,
+    feels_like_c:    log.feels_like_c,
+    cloud_cover_pct: log.cloud_cover_pct,
+    uv_index:        log.uv_index,
+    weather_code:    log.weather_code,
+    wind_speed_kmh:  log.wind_speed_kmh,
+    humidity_pct:    log.humidity_pct,
+    latitude:        log.latitude,
+    longitude:       log.longitude,
+  });
+  if (error) console.error("Error saving weather log:", error);
+};
+
+// Auto-track weather for the current period (runs silently on app load)
+const autoTrackWeather = async (existingWeatherLogs, setWeatherLogs) => {
+  try {
+    const period = getCurrentPeriod();
+    const dateStr = today();
+
+    // Check if we already have a log for this period today
+    const alreadyLogged = existingWeatherLogs.some(
+      (l) => l.date === dateStr && l.period === period
+    );
+    if (alreadyLogged) return;
+
+    // Get location
+    const { lat, lon } = await getLocation();
+
+    // Fetch weather
+    const weatherData = await fetchWeatherData(lat, lon);
+
+    const log = {
+      id:      `${dateStr}-${period}`,   // stable dedup key
+      date:    dateStr,
+      time:    new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
+      period,
+      ...weatherData,
+    };
+
+    await saveWeatherLog(log);
+    setWeatherLogs((prev) => [log, ...prev.filter((l) => l.id !== log.id)]);
+  } catch (e) {
+    // Silently fail — weather tracking is background/optional
+    console.warn("Weather auto-track skipped:", e.message);
+  }
+};
+
 // ── Slider ───────────────────────────────────────────────────────────────────
 function Slider({ value, onChange, min = 1, max = 10, step = 0.5, color }) {
   const pct = ((value - min) / (max - min)) * 100;
@@ -270,8 +388,90 @@ function GlassCard({ children, style = {} }) {
   );
 }
 
+// ── Weather Widget (shown on Home) ───────────────────────────────────────────
+function WeatherWidget({ weatherLogs }) {
+  const todayLogs = weatherLogs
+    .filter((l) => l.date === today())
+    .sort((a, b) => {
+      const order = { Morning: 0, Afternoon: 1, Evening: 2 };
+      return (order[a.period] ?? 3) - (order[b.period] ?? 3);
+    });
+
+  const latest = todayLogs[todayLogs.length - 1];
+
+  if (!latest) return null;
+
+  const { emoji, label } = weatherCodeInfo(latest.weather_code ?? 0);
+  const uv = uvLabel(latest.uv_index ?? 0);
+  const cloudPct = latest.cloud_cover_pct ?? 0;
+
+  return (
+    <div style={{
+      background: "rgba(255,255,255,0.05)",
+      backdropFilter: "blur(12px)",
+      borderRadius: 20,
+      padding: "16px",
+      border: "1px solid rgba(255,255,255,0.08)",
+      marginBottom: 16,
+    }}>
+      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>
+        Today's Weather
+      </div>
+
+      {/* Current snapshot */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: 36 }}>{emoji}</span>
+          <div>
+            <div style={{ fontSize: 28, fontWeight: 900, color: "#fff", letterSpacing: -1, lineHeight: 1 }}>
+              {latest.temperature_c}°C
+            </div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 2 }}>
+              Feels {latest.feels_like_c}°C · {label}
+            </div>
+          </div>
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <div style={{ fontSize: 11, color: uv.color, fontWeight: 700, background: `${uv.color}18`, borderRadius: 8, padding: "3px 8px", border: `1px solid ${uv.color}33`, marginBottom: 4 }}>
+            UV {latest.uv_index} · {uv.label}
+          </div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>
+            ☁️ {cloudPct}% · 💨 {latest.wind_speed_kmh} km/h
+          </div>
+        </div>
+      </div>
+
+      {/* Period breakdown */}
+      {todayLogs.length > 1 && (
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${todayLogs.length}, 1fr)`, gap: 8 }}>
+          {todayLogs.map((log) => {
+            const info = weatherCodeInfo(log.weather_code ?? 0);
+            return (
+              <div key={log.period} style={{
+                background: "rgba(255,255,255,0.04)",
+                borderRadius: 12,
+                border: "1px solid rgba(255,255,255,0.07)",
+                padding: "10px 8px",
+                textAlign: "center",
+              }}>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginBottom: 4 }}>
+                  {{ Morning: "🌅", Afternoon: "☀️", Evening: "🌙" }[log.period]}
+                  {" "}{log.period}
+                </div>
+                <div style={{ fontSize: 18 }}>{info.emoji}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", marginTop: 2 }}>{log.temperature_c}°</div>
+                <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>UV {log.uv_index}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Home Page ────────────────────────────────────────────────────────────────
-function HomePage({ moodLogs, journalLogs, foodLogs, wolLogs, setPage }) {
+function HomePage({ moodLogs, journalLogs, foodLogs, wolLogs, weatherLogs, setPage }) {
   const latestMood    = moodLogs[0];
   const latestJournal = journalLogs[0];
   const todayMoods    = moodLogs.filter(l => l.date === today());
@@ -334,6 +534,9 @@ function HomePage({ moodLogs, journalLogs, foodLogs, wolLogs, setPage }) {
             WELCOME<br />BACK TO<br /><span style={{ color: "#7eb3ff" }}>FUNDAMENTALS</span>
           </div>
         </div>
+
+        {/* Weather widget — shown automatically once we have data */}
+        <WeatherWidget weatherLogs={weatherLogs} />
 
         <div style={{
           background: "rgba(255,255,255,0.07)", backdropFilter: "blur(20px)",
@@ -637,7 +840,6 @@ function JournalPage({ journalLogs, setJournalLogs }) {
     return `${display}${period}`;
   };
 
-  // Pill toggle button
   const ToggleBtn = ({ value, onToggle, labelYes = "Yes ✓", labelNo = "No" }) => (
     <button onClick={onToggle} style={{
       background: value ? "rgba(255,255,255,0.45)" : "rgba(200,190,185,0.22)",
@@ -737,7 +939,6 @@ function JournalPage({ journalLogs, setJournalLogs }) {
               )}
               <div style={{ opacity: isLocked ? 0.45 : 1, pointerEvents: isLocked ? "none" : "auto", transition: "opacity 0.3s" }}>
 
-              {/* ── Work Hours (full width) ── */}
               <GlassCard>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
                   <span style={{ fontSize: 13, color: TP, fontWeight: 500 }}>💼  Work hours</span>
@@ -748,7 +949,6 @@ function JournalPage({ journalLogs, setJournalLogs }) {
                 <AuraSlider value={workHours} min={0} max={16} step={0.5} accentColor={workColor} sliderKey="work" onChange={setWorkHours} />
               </GlassCard>
 
-              {/* ── Caffeine cups + Last coffee (side by side) ── */}
               <div className="j-side-grid">
                 <div className="j-side-card">
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
@@ -768,7 +968,6 @@ function JournalPage({ journalLogs, setJournalLogs }) {
                 </div>
               </div>
 
-              {/* ── Smoking toggle + How much (side by side) ── */}
               <div className="j-side-grid">
                 <div className="j-side-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                   <div style={{ fontSize: 12, color: TP, fontWeight: 500, marginBottom: 10 }}>🚬 Smoking</div>
@@ -783,7 +982,6 @@ function JournalPage({ journalLogs, setJournalLogs }) {
                 </div>
               </div>
 
-              {/* ── Screen before bed (full width) ── */}
               <GlassCard>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
                   <span style={{ fontSize: 13, color: TP, fontWeight: 500 }}>📱  Screentime before bed</span>
@@ -794,7 +992,6 @@ function JournalPage({ journalLogs, setJournalLogs }) {
                 <AuraSlider value={screenBed} min={0} max={120} step={5} accentColor={screenColor} sliderKey="screen" onChange={setScreenBed} />
               </GlassCard>
 
-              {/* ── Alcohol amount + Last alcohol glass (side by side) ── */}
               <div className="j-side-grid">
                 <div className="j-side-card">
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
@@ -812,7 +1009,6 @@ function JournalPage({ journalLogs, setJournalLogs }) {
                 </div>
               </div>
 
-              {/* ── Reading + Journaling (side by side) ── */}
               <div className="j-side-grid">
                 <div className="j-side-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                   <div style={{ fontSize: 12, color: TP, fontWeight: 500, marginBottom: 10 }}>📖 Reading</div>
@@ -824,7 +1020,6 @@ function JournalPage({ journalLogs, setJournalLogs }) {
                 </div>
               </div>
 
-              {/* ── Social activity (full width) ── */}
               <GlassCard style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 18px" }}>
                 <div>
                   <div style={{ fontSize: 14, color: TP, fontWeight: 600, marginBottom: 3 }}>🤝  Social activity</div>
@@ -833,7 +1028,6 @@ function JournalPage({ journalLogs, setJournalLogs }) {
                 <ToggleBtn value={social} onToggle={() => setSocial(!social)} />
               </GlassCard>
 
-              {/* ── Illness + Injury (side by side) ── */}
               <div className="j-side-grid">
                 <div className="j-side-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                   <div style={{ fontSize: 12, color: TP, fontWeight: 500, marginBottom: 10 }}>🤒 Illness</div>
@@ -845,7 +1039,6 @@ function JournalPage({ journalLogs, setJournalLogs }) {
                 </div>
               </div>
 
-              {/* ── Shared bed + Funny business (side by side) ── */}
               <div className="j-side-grid">
                 <div className="j-side-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                   <div style={{ fontSize: 12, color: TP, fontWeight: 500, marginBottom: 10 }}>🛏️ Shared bed</div>
@@ -856,8 +1049,6 @@ function JournalPage({ journalLogs, setJournalLogs }) {
                   <ToggleBtn value={funnyBusiness} onToggle={() => setFunnyBusiness(!funnyBusiness)} />
                 </div>
               </div>
-
-
 
               </div>
               <div style={{ marginTop: 4 }}>
@@ -887,7 +1078,6 @@ function JournalPage({ journalLogs, setJournalLogs }) {
                     <div style={{ fontFamily: "'DM Serif Display', Georgia, serif", fontSize: 18, color: TP }}>{fmt(log.date)}</div>
                     <div style={{ fontSize: 11, color: TM }}>{log.time}</div>
                   </div>
-                  {/* Row 1: Work, Sleep, Social */}
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 8 }}>
                     {[
                       { label: "Work",   value: `${log.work_hours ?? "—"}h`,  color: (log.work_hours ?? 8) <= 8 ? "#92400e" : "#c2410c" },
@@ -900,7 +1090,6 @@ function JournalPage({ journalLogs, setJournalLogs }) {
                       </div>
                     ))}
                   </div>
-                  {/* Row 2: Caffeine, Screen, Alcohol */}
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 8 }}>
                     {[
                       { label: "Caffeine", value: log.caffeine_cups != null ? `${log.caffeine_cups}c` : "—", color: "#92400e" },
@@ -913,7 +1102,6 @@ function JournalPage({ journalLogs, setJournalLogs }) {
                       </div>
                     ))}
                   </div>
-                  {/* Row 3: toggles */}
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: log.notes ? 10 : 0 }}>
                     {[
                       { label: "📖 Read",    val: log.reading },
@@ -976,8 +1164,6 @@ function WOLPage({ wolLogs, setWolLogs }) {
     setWolLogs(prev => [log, ...prev.filter(l => l.week_key !== thisWeek)]);
     setSaved(true);
   };
-
-  const sortedLogs = [...wolLogs].sort((a, b) => b.week_key.localeCompare(a.week_key));
 
   return (
     <div style={{ maxWidth: 480, margin: "0 auto", paddingTop: "env(safe-area-inset-top)", paddingBottom: 120 }}>
@@ -1058,8 +1244,6 @@ function WOLPage({ wolLogs, setWolLogs }) {
           )}
         </div>
       )}
-
-      
     </div>
   );
 }
@@ -1210,10 +1394,12 @@ function FoodPage({ foodLogs, setFoodLogs }) {
 
       {result && (
         <div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-            <div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: "#f0f0f8" }}>{result.meal_name}</div>
-              <div style={{ fontSize: 12, color: "#666", marginTop: 2 }}>{result.notes}</div>
+          {image && <img src={image} alt="meal" style={{ width: "100%", borderRadius: 16, maxHeight: 260, objectFit: "cover", marginBottom: 16 }} />}
+
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 16, gap: 12 }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "#f0f0f8", lineHeight: 1.3 }}>{result.meal_name}</div>
+              <div style={{ fontSize: 12, color: "#666", marginTop: 6, lineHeight: 1.5 }}>{result.notes}</div>
               <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 6 }}>
                 <div style={{ fontSize: 11, color: "#555" }}>Confidence:</div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: result.confidence_score >= 80 ? "#4ade80" : result.confidence_score >= 60 ? "#facc15" : "#f87171" }}>
@@ -1221,13 +1407,14 @@ function FoodPage({ foodLogs, setFoodLogs }) {
                 </div>
               </div>
             </div>
-            <div style={{ background: scoreBg(result.quality_score), border: `1px solid ${scoreColor(result.quality_score)}44`, borderRadius: 10, padding: "6px 12px", textAlign: "center" }}>
-              <div style={{ fontSize: 20, fontWeight: 700, color: scoreColor(result.quality_score) }}>{result.quality_score}</div>
+            <div style={{ background: scoreBg(result.quality_score), border: `1px solid ${scoreColor(result.quality_score)}44`, borderRadius: 10, padding: "8px 14px", textAlign: "center", flexShrink: 0 }}>
+              <div style={{ fontSize: 22, fontWeight: 700, color: scoreColor(result.quality_score) }}>{result.quality_score}</div>
               <div style={{ fontSize: 10, color: scoreColor(result.quality_score), opacity: 0.8 }}>{result.quality_label}</div>
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8, marginBottom: 12 }}>
+          {/* Main macros */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8, marginBottom: 20 }}>
             {[
               { label: "Calories", value: result.calories,  unit: "kcal", color: "#f59e0b" },
               { label: "Protein",  value: result.protein_g, unit: "g",    color: "#6366f1" },
@@ -1241,6 +1428,76 @@ function FoodPage({ foodLogs, setFoodLogs }) {
               </div>
             ))}
           </div>
+
+          {/* Fats section */}
+          <div style={{ fontSize: 11, color: "#555", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Fats</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 20 }}>
+            {[
+              { label: "Fibre",      value: result.fibre_g,          unit: "g",  color: "#4ade80" },
+              { label: "Sugar",      value: result.sugar_g,          unit: "g",  color: "#f472b6" },
+              { label: "Saturated",  value: result.saturated_fat_g,  unit: "g",  color: "#fb923c" },
+              { label: "Trans Fat",  value: result.trans_fat_g,      unit: "g",  color: "#f87171" },
+              { label: "Cholesterol",value: result.cholesterol_mg,   unit: "mg", color: "#facc15" },
+              { label: "Sodium",     value: result.sodium_mg,        unit: "mg", color: "#60a5fa" },
+            ].map(m => (
+              <div key={m.label} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.07)", padding: "10px 8px" }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: m.color }}>{m.value}{m.unit}</div>
+                <div style={{ fontSize: 10, color: "#666", marginTop: 3 }}>{m.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Minerals section */}
+          <div style={{ fontSize: 11, color: "#555", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Minerals</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 20 }}>
+            {[
+              { label: "Potassium",  value: result.potassium_mg,  unit: "mg", color: "#a78bfa" },
+              { label: "Calcium",    value: result.calcium_mg,    unit: "mg", color: "#34d399" },
+              { label: "Iron",       value: result.iron_mg,       unit: "mg", color: "#fb923c" },
+              { label: "Magnesium",  value: result.magnesium_mg,  unit: "mg", color: "#60a5fa" },
+              { label: "Phosphorus", value: result.phosphorus_mg, unit: "mg", color: "#facc15" },
+              { label: "Zinc",       value: result.zinc_mg,       unit: "mg", color: "#f472b6" },
+            ].map(m => (
+              <div key={m.label} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.07)", padding: "10px 8px" }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: m.color }}>{m.value}{m.unit}</div>
+                <div style={{ fontSize: 10, color: "#666", marginTop: 3 }}>{m.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Vitamins section */}
+          <div style={{ fontSize: 11, color: "#555", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Vitamins</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 20 }}>
+            {[
+              { label: "Vitamin A",   value: result.vitamin_a_ug,   unit: "μg", color: "#f59e0b" },
+              { label: "Vitamin C",   value: result.vitamin_c_mg,   unit: "mg", color: "#34d399" },
+              { label: "Vitamin D",   value: result.vitamin_d_ug,   unit: "μg", color: "#facc15" },
+              { label: "Vitamin E",   value: result.vitamin_e_mg,   unit: "mg", color: "#fb923c" },
+              { label: "Vitamin K",   value: result.vitamin_k_ug,   unit: "μg", color: "#a78bfa" },
+              { label: "Vitamin B12", value: result.vitamin_b12_ug, unit: "μg", color: "#60a5fa" },
+              { label: "Vitamin B6",  value: result.vitamin_b6_mg,  unit: "mg", color: "#f472b6" },
+              { label: "Folate",      value: result.folate_ug,      unit: "μg", color: "#4ade80" },
+            ].map(m => (
+              <div key={m.label} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.07)", padding: "10px 8px" }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: m.color }}>{m.value}{m.unit}</div>
+                <div style={{ fontSize: 10, color: "#666", marginTop: 3 }}>{m.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Detected ingredients */}
+          {result.main_ingredients?.length > 0 && (
+            <>
+              <div style={{ fontSize: 11, color: "#555", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Detected</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
+                {result.main_ingredients.map((ing, i) => (
+                  <span key={i} style={{ fontSize: 12, padding: "6px 14px", borderRadius: 20, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#bbb" }}>
+                    {ing}
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
 
           {savedFood ? (
             <div style={{ textAlign: "center", padding: "14px", background: "rgba(74,222,128,0.1)", borderRadius: 12, color: "#4ade80", fontSize: 14, fontWeight: 600 }}>✓  Saved</div>
@@ -1312,7 +1569,7 @@ function FoodPage({ foodLogs, setFoodLogs }) {
 }
 
 // ── Insights Page ────────────────────────────────────────────────────────────
-function InsightsPage({ moodLogs, journalLogs, foodLogs, wolLogs }) {
+function InsightsPage({ moodLogs, journalLogs, foodLogs, wolLogs, weatherLogs }) {
   if (moodLogs.length < 3) return (
     <div style={{ padding: "60px 24px", textAlign: "center", maxWidth: 480, margin: "0 auto" }}>
       <div style={{ fontSize: 40, marginBottom: 16 }}>🔍</div>
@@ -1399,6 +1656,27 @@ function InsightsPage({ moodLogs, journalLogs, foodLogs, wolLogs }) {
       finding: `Latest WOL avg: ${wolAvg}/10. Lowest area: ${lowest.icon} ${lowest.label} (${latestWol[lowest.key]}). Focus here for biggest life satisfaction gains.` });
   }
 
+  // Weather-mood correlation insight
+  if (weatherLogs.length >= 5 && moodLogs.length >= 5) {
+    const sunnyDates = new Set(
+      weatherLogs.filter(w => (w.weather_code ?? 99) <= 2).map(w => w.date)
+    );
+    const cloudyDates = new Set(
+      weatherLogs.filter(w => (w.weather_code ?? 0) >= 3).map(w => w.date)
+    );
+    const sunnyMoods = moodLogs.filter(l => sunnyDates.has(l.date)).map(l => l.mood);
+    const cloudyMoods = moodLogs.filter(l => cloudyDates.has(l.date)).map(l => l.mood);
+    if (sunnyMoods.length >= 2 && cloudyMoods.length >= 2) {
+      const sunnyAvg = (sunnyMoods.reduce((a, b) => a + b, 0) / sunnyMoods.length).toFixed(1);
+      const cloudyAvg = (cloudyMoods.reduce((a, b) => a + b, 0) / cloudyMoods.length).toFixed(1);
+      const diff = (parseFloat(sunnyAvg) - parseFloat(cloudyAvg)).toFixed(1);
+      insights.push({
+        icon: "🌤️", title: "Weather & Mood", color: parseFloat(diff) > 0 ? "#facc15" : "#a5b4fc",
+        finding: `Clear days: mood ${sunnyAvg} vs cloudy days: ${cloudyAvg} (${parseFloat(diff) > 0 ? "+" : ""}${diff} pts). ${Math.abs(parseFloat(diff)) < 0.3 ? "Weather doesn't seem to strongly affect your mood." : parseFloat(diff) > 0 ? "You tend to feel better on sunny days." : "You actually prefer overcast conditions."}`,
+      });
+    }
+  }
+
   return (
     <div style={{ padding: "calc(env(safe-area-inset-top) + 24px) 20px 24px", maxWidth: 480, margin: "0 auto" }}>
       <h2 style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 700, color: "#f0f0f8" }}>Your Insights</h2>
@@ -1483,15 +1761,20 @@ export default function App() {
   const [journalLogs, setJournalLogs] = useState([]);
   const [wolLogs,     setWolLogs]     = useState([]);
   const [foodLogs,    setFoodLogs]    = useState([]);
+  const [weatherLogs, setWeatherLogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadAllData().then(({ moodLogs, journalLogs, wolLogs, foodLogs }) => {
+    loadAllData().then(({ moodLogs, journalLogs, wolLogs, foodLogs, weatherLogs }) => {
       setMoodLogs(moodLogs);
       setJournalLogs(journalLogs);
       setWolLogs(wolLogs);
       setFoodLogs(foodLogs);
+      setWeatherLogs(weatherLogs);
       setLoading(false);
+
+      // Fire weather auto-track after data is loaded (so we can check for duplicates)
+      autoTrackWeather(weatherLogs, setWeatherLogs);
     });
   }, []);
 
@@ -1517,12 +1800,11 @@ export default function App() {
         </div>
       ) : (
         <div style={{ animation: "fadeUp 0.3s ease" }}>
-          {page === "home"     && <HomePage     moodLogs={moodLogs} journalLogs={journalLogs} foodLogs={foodLogs} wolLogs={wolLogs} setPage={setPage} />}
+          {page === "home"     && <HomePage     moodLogs={moodLogs} journalLogs={journalLogs} foodLogs={foodLogs} wolLogs={wolLogs} weatherLogs={weatherLogs} setPage={setPage} />}
           {page === "mood"     && <MoodPage     moodLogs={moodLogs} setMoodLogs={setMoodLogs} wolLogs={wolLogs} setWolLogs={setWolLogs} />}
           {page === "journal"  && <JournalPage  journalLogs={journalLogs} setJournalLogs={setJournalLogs} />}
-
           {page === "food"     && <FoodPage     foodLogs={foodLogs} setFoodLogs={setFoodLogs} />}
-          {page === "insights" && <InsightsPage moodLogs={moodLogs} journalLogs={journalLogs} foodLogs={foodLogs} wolLogs={wolLogs} />}
+          {page === "insights" && <InsightsPage moodLogs={moodLogs} journalLogs={journalLogs} foodLogs={foodLogs} wolLogs={wolLogs} weatherLogs={weatherLogs} />}
         </div>
       )}
 
