@@ -1275,245 +1275,246 @@ function FoodPage({ foodLogs, setFoodLogs }) {
   const reset = () => { setImage(null); setImageData(null); setResult(null); setSavedFood(false); setError(null); setTextInput(""); };
 
   return (
-    <div style={{ padding: "calc(env(safe-area-inset-top) + 24px) 20px 200px", maxWidth: "100%", margin: "0 auto" }}>
-      <h2 style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 700, color: "#f0f0f8" }}>Food Analysis</h2>
-      <p style={{ margin: "0 0 20px", fontSize: 13, color: "#666" }}>Photo your meal or describe it for an instant nutrition breakdown</p>
+    <div style={{ minHeight: "100vh", position: "relative" }}>
+      <div style={{ position: "absolute", inset: 0, zIndex: 0, background: "linear-gradient(160deg, #0a0a1a 0%, #0d1b4d 25%, #0a2a6e 45%, #0d3a7a 60%, #061428 100%)" }} />
+      <div style={{ position: "absolute", inset: 0, zIndex: 0, background: "radial-gradient(ellipse 60% 50% at 20% 40%, rgba(0,120,255,0.45) 0%, transparent 65%), radial-gradient(ellipse 50% 40% at 80% 60%, rgba(0,220,255,0.25) 0%, transparent 60%), radial-gradient(ellipse 70% 35% at 50% 80%, rgba(0,80,200,0.35) 0%, transparent 70%)", filter: "blur(18px)" }} />
 
-      {!result && (
-        <>
-          <div onClick={() => fileRef.current?.click()}
-            onDragOver={e => e.preventDefault()}
-            onDrop={e => { e.preventDefault(); handleFile(e.dataTransfer.files[0]); }}
-            style={{
-              border: image ? "none" : "2px dashed rgba(255,255,255,0.12)", borderRadius: 16,
-              overflow: "hidden", cursor: "pointer",
-              background: image ? "transparent" : "rgba(255,255,255,0.03)",
-              minHeight: image ? "auto" : 180, display: "flex", alignItems: "center",
-              justifyContent: "center", marginBottom: 16,
-            }}>
-            {image
-              ? <img src={image} alt="meal" style={{ width: "100%", borderRadius: 16, maxHeight: 280, objectFit: "cover" }} />
-              : <div style={{ textAlign: "center", padding: 32 }}>
-                  <div style={{ fontSize: 40, marginBottom: 12 }}>📸</div>
-                  <div style={{ fontSize: 14, color: "#888" }}>Tap to upload or drag a photo</div>
-                  <div style={{ fontSize: 11, color: "#555", marginTop: 4 }}>JPG, PNG, HEIC</div>
+      <div style={{ position: "relative", zIndex: 1, padding: "calc(env(safe-area-inset-top) + 24px) 20px 200px", maxWidth: 480, margin: "0 auto" }}>
+        <h2 style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 700, color: "#f0f0f8" }}>Food Analysis</h2>
+        <p style={{ margin: "0 0 20px", fontSize: 13, color: "#888" }}>Photo your meal or describe it for an instant nutrition breakdown</p>
+
+        {!result && (
+          <>
+            <div onClick={() => fileRef.current?.click()}
+              onDragOver={e => e.preventDefault()}
+              onDrop={e => { e.preventDefault(); handleFile(e.dataTransfer.files[0]); }}
+              style={{
+                border: image ? "none" : "2px dashed rgba(255,255,255,0.15)", borderRadius: 16,
+                overflow: "hidden", cursor: "pointer",
+                background: image ? "transparent" : "rgba(255,255,255,0.05)",
+                minHeight: image ? "auto" : 180, display: "flex", alignItems: "center",
+                justifyContent: "center", marginBottom: 16,
+              }}>
+              {image
+                ? <img src={image} alt="meal" style={{ width: "100%", borderRadius: 16, maxHeight: 280, objectFit: "cover" }} />
+                : <div style={{ textAlign: "center", padding: 32 }}>
+                    <div style={{ fontSize: 40, marginBottom: 12 }}>📸</div>
+                    <div style={{ fontSize: 14, color: "#888" }}>Tap to upload or drag a photo</div>
+                    <div style={{ fontSize: 11, color: "#555", marginTop: 4 }}>JPG, PNG, HEIC</div>
+                  </div>
+              }
+            </div>
+            <input ref={fileRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={e => handleFile(e.target.files[0])} />
+
+            {image && (
+              <button onClick={analyseImage} disabled={loading} style={{
+                width: "100%", padding: "14px", borderRadius: 12, border: "none",
+                background: loading ? "rgba(99,102,241,0.4)" : "linear-gradient(135deg,#6366f1,#8b5cf6)",
+                color: "#fff", fontSize: 15, fontWeight: 600, cursor: loading ? "default" : "pointer", marginBottom: 16,
+              }}>
+                {loading ? "Analysing…" : "✦  Analyse Meal"}
+              </button>
+            )}
+
+            {!image && (
+              <>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+                  <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.1)" }} />
+                  <span style={{ fontSize: 12, color: "#555", letterSpacing: 1 }}>OR</span>
+                  <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.1)" }} />
                 </div>
-            }
-          </div>
-          <input ref={fileRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={e => handleFile(e.target.files[0])} />
+                <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 16, border: "1px solid rgba(255,255,255,0.13)", padding: "16px", marginBottom: 16 }}>
+                  <div style={{ fontSize: 11, color: "#888", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>✏️  Describe your meal</div>
+                  <textarea placeholder="e.g. 2 scrambled eggs, 2 slices of sourdough toast with butter, and a black coffee"
+                    value={textInput} onChange={e => setTextInput(e.target.value)}
+                    style={{ width: "100%", minHeight: 80, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "12px 14px", color: "#ddd", fontSize: 13, resize: "none", outline: "none", boxSizing: "border-box", fontFamily: "inherit", marginBottom: 10, lineHeight: 1.5 }} />
+                  <button onClick={analyseText} disabled={loading || !textInput.trim()} style={{
+                    width: "100%", padding: "13px", borderRadius: 10, border: "none",
+                    background: (!textInput.trim() || loading) ? "rgba(99,102,241,0.25)" : "linear-gradient(135deg,#6366f1,#8b5cf6)",
+                    color: (!textInput.trim() || loading) ? "#666" : "#fff",
+                    fontSize: 14, fontWeight: 600, cursor: (!textInput.trim() || loading) ? "default" : "pointer",
+                  }}>
+                    {loading ? "Analysing…" : "✦  Analyse Description"}
+                  </button>
+                </div>
+              </>
+            )}
+          </>
+        )}
 
-          {image && (
-            <button onClick={analyseImage} disabled={loading} style={{
-              width: "100%", padding: "14px", borderRadius: 12, border: "none",
-              background: loading ? "rgba(99,102,241,0.4)" : "linear-gradient(135deg,#6366f1,#8b5cf6)",
-              color: "#fff", fontSize: 15, fontWeight: 600, cursor: loading ? "default" : "pointer", marginBottom: 16,
-            }}>
-              {loading ? "Analysing…" : "✦  Analyse Meal"}
-            </button>
-          )}
+        {error && (
+          <div style={{ background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.3)", borderRadius: 10, padding: "12px 16px", color: "#f87171", fontSize: 13, marginBottom: 16 }}>{error}</div>
+        )}
 
-          {!image && (
-            <>
-              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-                <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.07)" }} />
-                <span style={{ fontSize: 12, color: "#444", letterSpacing: 1 }}>OR</span>
-                <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.07)" }} />
-              </div>
-              <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 16, border: "1px solid rgba(255,255,255,0.08)", padding: "16px", marginBottom: 16 }}>
-                <div style={{ fontSize: 11, color: "#555", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>✏️  Describe your meal</div>
-                <textarea placeholder="e.g. 2 scrambled eggs, 2 slices of sourdough toast with butter, and a black coffee"
-                  value={textInput} onChange={e => setTextInput(e.target.value)}
-                  style={{ width: "100%", minHeight: 80, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "12px 14px", color: "#ddd", fontSize: 13, resize: "none", outline: "none", boxSizing: "border-box", fontFamily: "inherit", marginBottom: 10, lineHeight: 1.5 }} />
-                <button onClick={analyseText} disabled={loading || !textInput.trim()} style={{
-                  width: "100%", padding: "13px", borderRadius: 10, border: "none",
-                  background: (!textInput.trim() || loading) ? "rgba(99,102,241,0.25)" : "linear-gradient(135deg,#6366f1,#8b5cf6)",
-                  color: (!textInput.trim() || loading) ? "#666" : "#fff",
-                  fontSize: 14, fontWeight: 600, cursor: (!textInput.trim() || loading) ? "default" : "pointer",
-                }}>
-                  {loading ? "Analysing…" : "✦  Analyse Description"}
-                </button>
-              </div>
-            </>
-          )}
-        </>
-      )}
+        {result && (
+          <div>
+            {image && <img src={image} alt="meal" style={{ width: "100%", borderRadius: 16, maxHeight: 260, objectFit: "cover", marginBottom: 16 }} />}
 
-      {error && (
-        <div style={{ background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.3)", borderRadius: 10, padding: "12px 16px", color: "#f87171", fontSize: 13, marginBottom: 16 }}>{error}</div>
-      )}
-
-      {result && (
-        <div>
-          {image && <img src={image} alt="meal" style={{ width: "100%", borderRadius: 16, maxHeight: 260, objectFit: "cover", marginBottom: 16 }} />}
-
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 16, gap: 12 }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 18, fontWeight: 700, color: "#f0f0f8", lineHeight: 1.3 }}>{result.meal_name}</div>
-              <div style={{ fontSize: 12, color: "#666", marginTop: 6, lineHeight: 1.5 }}>{result.notes}</div>
-              <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 6 }}>
-                <div style={{ fontSize: 11, color: "#555" }}>Confidence:</div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: result.confidence_score >= 80 ? "#4ade80" : result.confidence_score >= 60 ? "#facc15" : "#f87171" }}>
-                  {result.confidence_score}%
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 16, gap: 12 }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 18, fontWeight: 700, color: "#f0f0f8", lineHeight: 1.3 }}>{result.meal_name}</div>
+                <div style={{ fontSize: 12, color: "#888", marginTop: 6, lineHeight: 1.5 }}>{result.notes}</div>
+                <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ fontSize: 11, color: "#555" }}>Confidence:</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: result.confidence_score >= 80 ? "#4ade80" : result.confidence_score >= 60 ? "#facc15" : "#f87171" }}>
+                    {result.confidence_score}%
+                  </div>
                 </div>
               </div>
+              <div style={{ background: scoreBg(result.quality_score), border: `1px solid ${scoreColor(result.quality_score)}44`, borderRadius: 10, padding: "8px 14px", textAlign: "center", flexShrink: 0 }}>
+                <div style={{ fontSize: 22, fontWeight: 700, color: scoreColor(result.quality_score) }}>{result.quality_score}</div>
+                <div style={{ fontSize: 10, color: scoreColor(result.quality_score), opacity: 0.8 }}>{result.quality_label}</div>
+              </div>
             </div>
-            <div style={{ background: scoreBg(result.quality_score), border: `1px solid ${scoreColor(result.quality_score)}44`, borderRadius: 10, padding: "8px 14px", textAlign: "center", flexShrink: 0 }}>
-              <div style={{ fontSize: 22, fontWeight: 700, color: scoreColor(result.quality_score) }}>{result.quality_score}</div>
-              <div style={{ fontSize: 10, color: scoreColor(result.quality_score), opacity: 0.8 }}>{result.quality_label}</div>
-            </div>
-          </div>
 
-          {/* Main macros */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8, marginBottom: 20 }}>
-            {[
-              { label: "Calories", value: result.calories,  unit: "kcal", color: "#f59e0b" },
-              { label: "Protein",  value: result.protein_g, unit: "g",    color: "#6366f1" },
-              { label: "Carbs",    value: result.carbs_g,   unit: "g",    color: "#f97316" },
-              { label: "Fat",      value: result.fat_g,     unit: "g",    color: "#ec4899" },
-            ].map(m => (
-              <div key={m.label} style={{ background: "rgba(255,255,255,0.04)", borderRadius: 10, border: `1px solid ${m.color}33`, padding: "10px 8px", textAlign: "center" }}>
-                <div style={{ fontSize: 16, fontWeight: 700, color: m.color }}>{m.value}</div>
-                <div style={{ fontSize: 9, color: "#666", marginTop: 2 }}>{m.unit}</div>
-                <div style={{ fontSize: 10, color: "#888" }}>{m.label}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Fats section */}
-          <div style={{ fontSize: 11, color: "#555", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Fats</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 20 }}>
-            {[
-              { label: "Fibre",      value: result.fibre_g,          unit: "g",  color: "#4ade80" },
-              { label: "Sugar",      value: result.sugar_g,          unit: "g",  color: "#f472b6" },
-              { label: "Saturated",  value: result.saturated_fat_g,  unit: "g",  color: "#fb923c" },
-              { label: "Trans Fat",  value: result.trans_fat_g,      unit: "g",  color: "#f87171" },
-              { label: "Cholesterol",value: result.cholesterol_mg,   unit: "mg", color: "#facc15" },
-              { label: "Sodium",     value: result.sodium_mg,        unit: "mg", color: "#60a5fa" },
-            ].map(m => (
-              <div key={m.label} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.07)", padding: "10px 8px" }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: m.color }}>{m.value}{m.unit}</div>
-                <div style={{ fontSize: 10, color: "#666", marginTop: 3 }}>{m.label}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Minerals section */}
-          <div style={{ fontSize: 11, color: "#555", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Minerals</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 20 }}>
-            {[
-              { label: "Potassium",  value: result.potassium_mg,  unit: "mg", color: "#a78bfa" },
-              { label: "Calcium",    value: result.calcium_mg,    unit: "mg", color: "#34d399" },
-              { label: "Iron",       value: result.iron_mg,       unit: "mg", color: "#fb923c" },
-              { label: "Magnesium",  value: result.magnesium_mg,  unit: "mg", color: "#60a5fa" },
-              { label: "Phosphorus", value: result.phosphorus_mg, unit: "mg", color: "#facc15" },
-              { label: "Zinc",       value: result.zinc_mg,       unit: "mg", color: "#f472b6" },
-            ].map(m => (
-              <div key={m.label} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.07)", padding: "10px 8px" }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: m.color }}>{m.value}{m.unit}</div>
-                <div style={{ fontSize: 10, color: "#666", marginTop: 3 }}>{m.label}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Vitamins section */}
-          <div style={{ fontSize: 11, color: "#555", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Vitamins</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 20 }}>
-            {[
-              { label: "Vitamin A",   value: result.vitamin_a_ug,   unit: "μg", color: "#f59e0b" },
-              { label: "Vitamin C",   value: result.vitamin_c_mg,   unit: "mg", color: "#34d399" },
-              { label: "Vitamin D",   value: result.vitamin_d_ug,   unit: "μg", color: "#facc15" },
-              { label: "Vitamin E",   value: result.vitamin_e_mg,   unit: "mg", color: "#fb923c" },
-              { label: "Vitamin K",   value: result.vitamin_k_ug,   unit: "μg", color: "#a78bfa" },
-              { label: "Vitamin B12", value: result.vitamin_b12_ug, unit: "μg", color: "#60a5fa" },
-              { label: "Vitamin B6",  value: result.vitamin_b6_mg,  unit: "mg", color: "#f472b6" },
-              { label: "Folate",      value: result.folate_ug,      unit: "μg", color: "#4ade80" },
-            ].map(m => (
-              <div key={m.label} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.07)", padding: "10px 8px" }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: m.color }}>{m.value}{m.unit}</div>
-                <div style={{ fontSize: 10, color: "#666", marginTop: 3 }}>{m.label}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Detected ingredients */}
-          {result.main_ingredients?.length > 0 && (
-            <>
-              <div style={{ fontSize: 11, color: "#555", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Detected</div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
-                {result.main_ingredients.map((ing, i) => (
-                  <span key={i} style={{ fontSize: 12, padding: "6px 14px", borderRadius: 20, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#bbb" }}>
-                    {ing}
-                  </span>
-                ))}
-              </div>
-            </>
-          )}
-
-          {savedFood ? (
-            <div style={{ textAlign: "center", padding: "14px", background: "rgba(74,222,128,0.1)", borderRadius: 12, color: "#4ade80", fontSize: 14, fontWeight: 600 }}>✓  Saved</div>
-          ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <button onClick={reset} style={{ padding: "13px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "#888", fontSize: 14, cursor: "pointer" }}>Retake</button>
-              <button onClick={saveLog} style={{ padding: "13px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Save Log</button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {selectedLog && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)", overflowY: "auto", padding: "24px 20px 60px" }}>
-          <div style={{ maxWidth: 480, margin: "0 auto" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-              <div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: "#f0f0f8" }}>{selectedLog.meal_name}</div>
-                <div style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{fmt(selectedLog.date)} · {selectedLog.time}</div>
-              </div>
-              <button onClick={() => setSelectedLog(null)} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "8px 14px", color: "#aaa", fontSize: 13, cursor: "pointer" }}>✕ Close</button>
-            </div>
-            {selectedLog.image && <img src={selectedLog.image} alt="meal" style={{ width: "100%", borderRadius: 16, maxHeight: 220, objectFit: "cover", marginBottom: 16 }} />}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8 }}>
+            <div style={{ fontSize: 11, color: "#555", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Macros</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8, marginBottom: 20 }}>
               {[
-                { label: "Calories", value: selectedLog.calories,  unit: "kcal", color: "#f59e0b" },
-                { label: "Protein",  value: selectedLog.protein_g, unit: "g",    color: "#6366f1" },
-                { label: "Carbs",    value: selectedLog.carbs_g,   unit: "g",    color: "#f97316" },
-                { label: "Fat",      value: selectedLog.fat_g,     unit: "g",    color: "#ec4899" },
+                { label: "Calories", value: result.calories,  unit: "kcal", color: "#f59e0b" },
+                { label: "Protein",  value: result.protein_g, unit: "g",    color: "#6366f1" },
+                { label: "Carbs",    value: result.carbs_g,   unit: "g",    color: "#f97316" },
+                { label: "Fat",      value: result.fat_g,     unit: "g",    color: "#ec4899" },
               ].map(m => (
-                <div key={m.label} style={{ background: "rgba(255,255,255,0.04)", borderRadius: 10, border: `1px solid ${m.color}33`, padding: "10px 8px", textAlign: "center" }}>
+                <div key={m.label} style={{ background: "rgba(255,255,255,0.07)", borderRadius: 10, border: `1px solid ${m.color}44`, padding: "10px 8px", textAlign: "center" }}>
                   <div style={{ fontSize: 16, fontWeight: 700, color: m.color }}>{m.value}</div>
                   <div style={{ fontSize: 9, color: "#666", marginTop: 2 }}>{m.unit}</div>
                   <div style={{ fontSize: 10, color: "#888" }}>{m.label}</div>
                 </div>
               ))}
             </div>
-          </div>
-        </div>
-      )}
 
-      {foodLogs.length > 0 && (
-        <div style={{ marginTop: 32 }}>
-          <div style={{ fontSize: 11, color: "#555", letterSpacing: 1, textTransform: "uppercase", marginBottom: 12 }}>Recent</div>
-          {[...foodLogs].sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time)).slice(0, 10).map(log => (
-            <div key={log.id} onClick={() => setSelectedLog(log)}
-              style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10, background: "rgba(255,255,255,0.03)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)", padding: "10px 14px", cursor: "pointer" }}
-              onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.06)"}
-              onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.03)"}
-            >
-              {log.image
-                ? <img src={log.image} alt="" style={{ width: 44, height: 44, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} />
-                : <div style={{ width: 44, height: 44, borderRadius: 8, background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>✏️</div>
-              }
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "#ddd", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{log.meal_name}</div>
-                <div style={{ fontSize: 11, color: "#555" }}>{fmt(log.date)} · {log.time} · {log.calories} kcal</div>
+            <div style={{ fontSize: 11, color: "#555", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Fats</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 20 }}>
+              {[
+                { label: "Fibre",       value: result.fibre_g,         unit: "g",  color: "#4ade80" },
+                { label: "Sugar",       value: result.sugar_g,         unit: "g",  color: "#f472b6" },
+                { label: "Saturated",   value: result.saturated_fat_g, unit: "g",  color: "#fb923c" },
+                { label: "Trans Fat",   value: result.trans_fat_g,     unit: "g",  color: "#f87171" },
+                { label: "Cholesterol", value: result.cholesterol_mg,  unit: "mg", color: "#facc15" },
+                { label: "Sodium",      value: result.sodium_mg,       unit: "mg", color: "#60a5fa" },
+              ].map(m => (
+                <div key={m.label} style={{ background: "rgba(255,255,255,0.07)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.13)", padding: "10px 8px" }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: m.color }}>{m.value}{m.unit}</div>
+                  <div style={{ fontSize: 10, color: "#666", marginTop: 3 }}>{m.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ fontSize: 11, color: "#555", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Minerals</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 20 }}>
+              {[
+                { label: "Potassium",  value: result.potassium_mg,  unit: "mg", color: "#a78bfa" },
+                { label: "Calcium",    value: result.calcium_mg,    unit: "mg", color: "#34d399" },
+                { label: "Iron",       value: result.iron_mg,       unit: "mg", color: "#fb923c" },
+                { label: "Magnesium",  value: result.magnesium_mg,  unit: "mg", color: "#60a5fa" },
+                { label: "Phosphorus", value: result.phosphorus_mg, unit: "mg", color: "#facc15" },
+                { label: "Zinc",       value: result.zinc_mg,       unit: "mg", color: "#f472b6" },
+              ].map(m => (
+                <div key={m.label} style={{ background: "rgba(255,255,255,0.07)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.13)", padding: "10px 8px" }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: m.color }}>{m.value}{m.unit}</div>
+                  <div style={{ fontSize: 10, color: "#666", marginTop: 3 }}>{m.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ fontSize: 11, color: "#555", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Vitamins</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 20 }}>
+              {[
+                { label: "Vitamin A",   value: result.vitamin_a_ug,   unit: "μg", color: "#f59e0b" },
+                { label: "Vitamin C",   value: result.vitamin_c_mg,   unit: "mg", color: "#34d399" },
+                { label: "Vitamin D",   value: result.vitamin_d_ug,   unit: "μg", color: "#facc15" },
+                { label: "Vitamin E",   value: result.vitamin_e_mg,   unit: "mg", color: "#fb923c" },
+                { label: "Vitamin K",   value: result.vitamin_k_ug,   unit: "μg", color: "#a78bfa" },
+                { label: "Vitamin B12", value: result.vitamin_b12_ug, unit: "μg", color: "#60a5fa" },
+                { label: "Vitamin B6",  value: result.vitamin_b6_mg,  unit: "mg", color: "#f472b6" },
+                { label: "Folate",      value: result.folate_ug,      unit: "μg", color: "#4ade80" },
+              ].map(m => (
+                <div key={m.label} style={{ background: "rgba(255,255,255,0.07)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.13)", padding: "10px 8px" }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: m.color }}>{m.value}{m.unit}</div>
+                  <div style={{ fontSize: 10, color: "#666", marginTop: 3 }}>{m.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {result.main_ingredients?.length > 0 && (
+              <>
+                <div style={{ fontSize: 11, color: "#555", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Detected</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
+                  {result.main_ingredients.map((ing, i) => (
+                    <span key={i} style={{ fontSize: 12, padding: "6px 14px", borderRadius: 20, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.13)", color: "#bbb" }}>
+                      {ing}
+                    </span>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {savedFood ? (
+              <div style={{ textAlign: "center", padding: "14px", background: "rgba(74,222,128,0.1)", borderRadius: 12, color: "#4ade80", fontSize: 14, fontWeight: 600 }}>✓  Saved</div>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <button onClick={reset} style={{ padding: "13px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.13)", background: "rgba(255,255,255,0.05)", color: "#888", fontSize: 14, cursor: "pointer" }}>Retake</button>
+                <button onClick={saveLog} style={{ padding: "13px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Save Log</button>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <div style={{ fontSize: 16, fontWeight: 700, color: scoreColor(log.quality_score) }}>{log.quality_score}</div>
-                <div style={{ fontSize: 14, color: "#444" }}>›</div>
+            )}
+          </div>
+        )}
+
+        {selectedLog && (
+          <div style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)", overflowY: "auto", padding: "24px 20px 60px" }}>
+            <div style={{ maxWidth: 480, margin: "0 auto" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+                <div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: "#f0f0f8" }}>{selectedLog.meal_name}</div>
+                  <div style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{fmt(selectedLog.date)} · {selectedLog.time}</div>
+                </div>
+                <button onClick={() => setSelectedLog(null)} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.13)", borderRadius: 10, padding: "8px 14px", color: "#aaa", fontSize: 13, cursor: "pointer" }}>✕ Close</button>
+              </div>
+              {selectedLog.image && <img src={selectedLog.image} alt="meal" style={{ width: "100%", borderRadius: 16, maxHeight: 220, objectFit: "cover", marginBottom: 16 }} />}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8 }}>
+                {[
+                  { label: "Calories", value: selectedLog.calories,  unit: "kcal", color: "#f59e0b" },
+                  { label: "Protein",  value: selectedLog.protein_g, unit: "g",    color: "#6366f1" },
+                  { label: "Carbs",    value: selectedLog.carbs_g,   unit: "g",    color: "#f97316" },
+                  { label: "Fat",      value: selectedLog.fat_g,     unit: "g",    color: "#ec4899" },
+                ].map(m => (
+                  <div key={m.label} style={{ background: "rgba(255,255,255,0.07)", borderRadius: 10, border: `1px solid ${m.color}44`, padding: "10px 8px", textAlign: "center" }}>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: m.color }}>{m.value}</div>
+                    <div style={{ fontSize: 9, color: "#666", marginTop: 2 }}>{m.unit}</div>
+                    <div style={{ fontSize: 10, color: "#888" }}>{m.label}</div>
+                  </div>
+                ))}
               </div>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        )}
+
+        {foodLogs.length > 0 && (
+          <div style={{ marginTop: 32 }}>
+            <div style={{ fontSize: 11, color: "#555", letterSpacing: 1, textTransform: "uppercase", marginBottom: 12 }}>Recent</div>
+            {[...foodLogs].sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time)).slice(0, 10).map(log => (
+              <div key={log.id} onClick={() => setSelectedLog(log)}
+                style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10, background: "rgba(255,255,255,0.07)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.13)", padding: "10px 14px", cursor: "pointer" }}
+                onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
+                onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.07)"}
+              >
+                {log.image
+                  ? <img src={log.image} alt="" style={{ width: 44, height: 44, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} />
+                  : <div style={{ width: 44, height: 44, borderRadius: 8, background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>✏️</div>
+                }
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "#ddd", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{log.meal_name}</div>
+                  <div style={{ fontSize: 11, color: "#555" }}>{fmt(log.date)} · {log.time} · {log.calories} kcal</div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: scoreColor(log.quality_score) }}>{log.quality_score}</div>
+                  <div style={{ fontSize: 14, color: "#444" }}>›</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
