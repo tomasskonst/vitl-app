@@ -1281,7 +1281,7 @@ function FoodPage({ foodLogs, setFoodLogs }) {
 
       <div style={{ position: "relative", zIndex: 1, padding: "calc(env(safe-area-inset-top) + 24px) 20px 200px", maxWidth: 480, margin: "0 auto" }}>
         <h2 style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 700, color: "#f0f0f8" }}>Food Analysis</h2>
-        <p style={{ margin: "0 0 20px", fontSize: 13, color: "#888" }}>Photo your meal or describe it for an instant nutrition breakdown</p>
+        <p style={{ margin: "0 0 20px", fontSize: 13, color: "rgba(255,255,255,0.6)" }}>Photo your meal or describe it for an instant nutrition breakdown</p>
 
         {!result && (
           <>
@@ -1320,11 +1320,11 @@ function FoodPage({ foodLogs, setFoodLogs }) {
               <>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
                   <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.1)" }} />
-                  <span style={{ fontSize: 12, color: "#555", letterSpacing: 1 }}>OR</span>
+                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", letterSpacing: 1 }}>OR</span>
                   <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.1)" }} />
                 </div>
                 <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 16, border: "1px solid rgba(255,255,255,0.13)", padding: "16px", marginBottom: 16 }}>
-                  <div style={{ fontSize: 11, color: "#888", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>✏️  Describe your meal</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>✏️  Describe your meal</div>
                   <textarea placeholder="e.g. 2 scrambled eggs, 2 slices of sourdough toast with butter, and a black coffee"
                     value={textInput} onChange={e => setTextInput(e.target.value)}
                     style={{ width: "100%", minHeight: 80, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "12px 14px", color: "#ddd", fontSize: 13, resize: "none", outline: "none", boxSizing: "border-box", fontFamily: "inherit", marginBottom: 10, lineHeight: 1.5 }} />
@@ -1491,7 +1491,7 @@ function FoodPage({ foodLogs, setFoodLogs }) {
 
         {foodLogs.length > 0 && (
           <div style={{ marginTop: 32 }}>
-            <div style={{ fontSize: 11, color: "#555", letterSpacing: 1, textTransform: "uppercase", marginBottom: 12 }}>Recent</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", letterSpacing: 1, textTransform: "uppercase", marginBottom: 12 }}>Recent</div>
             {[...foodLogs].sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time)).slice(0, 10).map(log => (
               <div key={log.id} onClick={() => setSelectedLog(log)}
                 style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10, background: "rgba(255,255,255,0.07)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.13)", padding: "10px 14px", cursor: "pointer" }}
@@ -1504,7 +1504,7 @@ function FoodPage({ foodLogs, setFoodLogs }) {
                 }
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: "#ddd", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{log.meal_name}</div>
-                  <div style={{ fontSize: 11, color: "#555" }}>{fmt(log.date)} · {log.time} · {log.calories} kcal</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{fmt(log.date)} · {log.time} · {log.calories} kcal</div>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <div style={{ fontSize: 16, fontWeight: 700, color: scoreColor(log.quality_score) }}>{log.quality_score}</div>
