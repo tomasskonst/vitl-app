@@ -754,34 +754,29 @@ function JournalPage({ journalLogs, setJournalLogs }) {
     return d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" }) + " at 6:00am";
   };
 
-  const [workHours,        setWorkHours]        = useState(todayLog?.work_hours        ?? 8);
-  const [sleepHours,       setSleepHours]       = useState(todayLog?.sleep_hours       ?? 7.5);
-  const [social,           setSocial]           = useState(todayLog?.social            ?? false);
-  const [notes,            setNotes]            = useState(todayLog?.notes             ?? "");
-  const [saved,            setSaved]            = useState(false);
-  const [caffeineCups,     setCaffeineCups]     = useState(todayLog?.caffeine_cups     ?? 0);
-  const [lastCoffeeHour,   setLastCoffeeHour]   = useState(todayLog?.last_coffee_hour  ?? 8);
-  const [smoking,          setSmoking]          = useState(todayLog?.smoking           ?? false);
-  const [smokingAmount,    setSmokingAmount]    = useState(todayLog?.smoking_amount    ?? 1);
-  const [screenBed,        setScreenBed]        = useState(todayLog?.screen_bed        ?? 0);
-  const [alcoholAmount,    setAlcoholAmount]    = useState(todayLog?.alcohol_amount    ?? 0);
-  const [lastAlcoholHour,  setLastAlcoholHour]  = useState(todayLog?.last_alcohol_hour ?? 20);
-  const [reading,          setReading]          = useState(todayLog?.reading           ?? false);
-  const [journaling,       setJournaling]       = useState(todayLog?.journaling        ?? false);
-  const [illness,          setIllness]          = useState(todayLog?.illness           ?? false);
-  const [injury,           setInjury]           = useState(todayLog?.injury            ?? false);
-  const [sharedBed,        setSharedBed]        = useState(todayLog?.shared_bed        ?? false);
-  const [funnyBusiness,    setFunnyBusiness]    = useState(todayLog?.funny_business    ?? false);
+  const [workHours,       setWorkHours]       = useState(todayLog?.work_hours        ?? 8);
+  const [sleepHours,      setSleepHours]      = useState(todayLog?.sleep_hours       ?? 7.5);
+  const [social,          setSocial]          = useState(todayLog?.social            ?? false);
+  const [notes,           setNotes]           = useState(todayLog?.notes             ?? "");
+  const [saved,           setSaved]           = useState(false);
+  const [caffeineCups,    setCaffeineCups]    = useState(todayLog?.caffeine_cups     ?? 0);
+  const [lastCoffeeHour,  setLastCoffeeHour]  = useState(todayLog?.last_coffee_hour  ?? 8);
+  const [smoking,         setSmoking]         = useState(todayLog?.smoking           ?? false);
+  const [smokingAmount,   setSmokingAmount]   = useState(todayLog?.smoking_amount    ?? 1);
+  const [screenBed,       setScreenBed]       = useState(todayLog?.screen_bed        ?? 0);
+  const [alcoholAmount,   setAlcoholAmount]   = useState(todayLog?.alcohol_amount    ?? 0);
+  const [lastAlcoholHour, setLastAlcoholHour] = useState(todayLog?.last_alcohol_hour ?? 20);
+  const [reading,         setReading]         = useState(todayLog?.reading           ?? false);
+  const [journaling,      setJournaling]      = useState(todayLog?.journaling        ?? false);
+  const [illness,         setIllness]         = useState(todayLog?.illness           ?? false);
+  const [injury,          setInjury]          = useState(todayLog?.injury            ?? false);
+  const [sharedBed,       setSharedBed]       = useState(todayLog?.shared_bed        ?? false);
+  const [funnyBusiness,   setFunnyBusiness]   = useState(todayLog?.funny_business    ?? false);
 
-  const workColor    = workHours  <= 8   ? "#92400e" : workHours  <= 10 ? "#c2410c" : "#991b1b";
-  const sleepColor   = sleepHours >= 7.5 ? "#92400e" : sleepHours >= 6  ? "#c2410c" : "#991b1b";
-  const caffeineColor = caffeineCups <= 2 ? "#92400e" : caffeineCups <= 4 ? "#c2410c" : "#991b1b";
-  const screenColor  = screenBed <= 20 ? "#92400e" : screenBed <= 60 ? "#c2410c" : "#991b1b";
-  const alcoholColor = alcoholAmount === 0 ? "#92400e" : alcoholAmount <= 3 ? "#c2410c" : "#991b1b";
-
-  const TP = "rgba(20,6,0,0.88)";
-  const TS = "rgba(20,6,0,0.88)";
-  const TM = "rgba(20,6,0,0.88)";
+  const workColor     = workHours  <= 8   ? "#60a5fa" : workHours  <= 10 ? "#facc15" : "#f87171";
+  const caffeineColor = caffeineCups <= 2 ? "#60a5fa" : caffeineCups <= 4 ? "#facc15" : "#f87171";
+  const screenColor   = screenBed  <= 20  ? "#60a5fa" : screenBed  <= 60 ? "#facc15" : "#f87171";
+  const alcoholColor  = alcoholAmount === 0 ? "#60a5fa" : alcoholAmount <= 3 ? "#facc15" : "#f87171";
 
   const formatHour = (h) => {
     const hNorm = ((h % 24) + 24) % 24;
@@ -792,16 +787,37 @@ function JournalPage({ journalLogs, setJournalLogs }) {
 
   const ToggleBtn = ({ value, onToggle, labelYes = "Yes ✓", labelNo = "No" }) => (
     <button onClick={onToggle} style={{
-      background: value ? "rgba(255,255,255,0.45)" : "rgba(200,190,185,0.22)",
-      border: `0.5px solid ${value ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.2)"}`,
+      background: value ? "rgba(99,102,241,0.35)" : "rgba(255,255,255,0.07)",
+      border: `1px solid ${value ? "rgba(99,102,241,0.6)" : "rgba(255,255,255,0.13)"}`,
       borderRadius: 20, padding: "7px 18px", cursor: "pointer",
-      color: value ? "rgba(20,6,0,0.85)" : "rgba(20,6,0,0.38)",
+      color: value ? "#a5b4fc" : "rgba(255,255,255,0.4)",
       fontSize: 13, fontWeight: 700, transition: "all 0.22s",
-      backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
       whiteSpace: "nowrap",
     }}>
       {value ? labelYes : labelNo}
     </button>
+  );
+
+  const BlueSlider = ({ value, onChange, min = 0, max = 16, step = 0.5, color = "#60a5fa", sliderKey = "s" }) => {
+    const pct = ((value - min) / (max - min)) * 100;
+    const cls = `bslider-${sliderKey}`;
+    return (
+      <div style={{ position: "relative", padding: "10px 0" }}>
+        <style>{`
+          .${cls} { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; border-radius: 4px; outline: none; cursor: pointer; background: linear-gradient(to right, ${color} ${pct}%, rgba(255,255,255,0.1) ${pct}%); }
+          .${cls}::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%; background: ${color}; border: 2px solid #1a1a2e; box-shadow: 0 0 8px ${color}88; cursor: pointer; }
+        `}</style>
+        <input type="range" min={min} max={max} step={step} value={value} className={cls} onChange={(e) => onChange(parseFloat(e.target.value))} />
+      </div>
+    );
+  };
+
+  const Card = ({ children, style = {} }) => (
+    <div style={{
+      background: "rgba(255,255,255,0.07)", borderRadius: 16,
+      border: "1px solid rgba(255,255,255,0.13)",
+      padding: "14px 16px", marginBottom: 10, ...style,
+    }}>{children}</div>
   );
 
   const saveEntry = async () => {
@@ -836,249 +852,254 @@ function JournalPage({ journalLogs, setJournalLogs }) {
   const sortedLogs = [...journalLogs].sort((a, b) => b.date.localeCompare(a.date));
 
   return (
-    <div style={{
-      width: "100%", minHeight: "100vh",
-      background: "linear-gradient(160deg, #ff6a00 0%, #ee0979 60%, #c0392b 100%)",
-      display: "flex", flexDirection: "column",
-      fontFamily: "'DM Sans', system-ui, sans-serif",
-    }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap');
-        .j-scroll { overflow-y: auto; flex: 1; min-height: 0; padding-top: env(safe-area-inset-top); }
-        .j-scroll::-webkit-scrollbar { display: none; }
-        .j-title { font-family: 'DM Serif Display', Georgia, serif; font-size: 38px; color: #fff; letter-spacing: -0.5px; line-height: 1.05; text-shadow: 0 2px 20px rgba(0,0,0,0.3); margin: 0; }
-        .j-date-str { font-size: 13px; color: rgba(255,255,255,0.8); margin-top: 4px; font-weight: 400; text-shadow: 0 1px 8px rgba(0,0,0,0.25); }
-        .j-tabs { display: flex; gap: 3px; background: rgba(200,190,185,0.28); backdrop-filter: blur(50px) saturate(160%) brightness(1.08); -webkit-backdrop-filter: blur(50px) saturate(160%) brightness(1.08); border-radius: 16px; padding: 3px; border: 0.5px solid rgba(255,255,255,0.25); margin: 18px 20px 0; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
-        .j-tab { flex: 1; padding: 9px; border: none; background: transparent; cursor: pointer; font-size: 13px; border-radius: 13px; font-family: 'DM Sans', system-ui, sans-serif; font-weight: 500; transition: all 0.18s; color: rgba(20,6,0,0.38); }
-        .j-tab.active { background: rgba(255,255,255,0.5); color: rgba(20,6,0,0.85); font-weight: 700; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
-        textarea.j-ta { width: 100%; min-height: 110px; background: transparent; border: none; border-bottom: 1.5px solid rgba(20,6,0,0.12); border-radius: 0; padding: 10px 0; color: rgba(20,6,0,0.88); font-size: 15px; resize: none; outline: none; font-family: 'DM Sans', system-ui, sans-serif; line-height: 1.7; }
-        textarea.j-ta::placeholder { color: rgba(20,6,0,0.28); }
-        .j-save { width: 100%; padding: 15px; border-radius: 18px; border: none; background: rgba(200,190,185,0.3); backdrop-filter: blur(50px) saturate(160%) brightness(1.08); -webkit-backdrop-filter: blur(50px) saturate(160%) brightness(1.08); border: 0.5px solid rgba(255,255,255,0.28); color: rgba(20,6,0,0.82); font-size: 15px; font-weight: 700; cursor: pointer; font-family: 'DM Sans', system-ui, sans-serif; transition: all 0.18s; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
-        .j-save:hover { background: rgba(220,210,205,0.42); }
-        .j-save:active { transform: scale(0.985); }
-        .j-hcard { border-radius: 20px; border: 0.5px solid rgba(255,255,255,0.28); padding: 16px 18px; margin-bottom: 10px; background: rgba(200,190,185,0.28); backdrop-filter: blur(50px) saturate(160%) brightness(1.08); -webkit-backdrop-filter: blur(50px) saturate(160%) brightness(1.08); box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
-        .j-chip { background: rgba(255,255,255,0.2); border-radius: 12px; border: 0.5px solid rgba(255,255,255,0.25); padding: 10px 8px; text-align: center; }
-        .j-side-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-        .j-side-card { background: rgba(200,190,185,0.28); backdrop-filter: blur(50px) saturate(160%) brightness(1.08); -webkit-backdrop-filter: blur(50px) saturate(160%) brightness(1.08); border-radius: 20px; border: 0.5px solid rgba(255,255,255,0.28); box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 14px 16px; }
-      `}</style>
+    <div style={{ minHeight: "100vh", position: "relative" }}>
+      <div style={{ position: "absolute", inset: 0, zIndex: 0, background: "linear-gradient(160deg, #0a0a1a 0%, #0d1b4d 25%, #0a2a6e 45%, #0d3a7a 60%, #061428 100%)" }} />
+      <div style={{ position: "absolute", inset: 0, zIndex: 0, background: "radial-gradient(ellipse 60% 50% at 20% 40%, rgba(0,120,255,0.45) 0%, transparent 65%), radial-gradient(ellipse 50% 40% at 80% 60%, rgba(0,220,255,0.25) 0%, transparent 60%), radial-gradient(ellipse 70% 35% at 50% 80%, rgba(0,80,200,0.35) 0%, transparent 70%)", filter: "blur(18px)" }} />
 
-      <div className="j-scroll">
-        <div style={{ position: "relative", zIndex: 1, maxWidth: 480, margin: "0 auto", paddingBottom: 20 }}>
-          <div style={{ padding: "48px 22px 0" }}>
-            <h2 className="j-title">Journal</h2>
-            <div className="j-date-str">{new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}</div>
+      <div style={{ position: "relative", zIndex: 1, maxWidth: 480, margin: "0 auto", paddingTop: "calc(env(safe-area-inset-top) + 24px)", paddingBottom: 120 }}>
+        <div style={{ padding: "0 20px 0" }}>
+          <h2 style={{ margin: "0 0 2px", fontSize: 22, fontWeight: 700, color: "#f0f0f8" }}>Journal</h2>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", marginBottom: 16 }}>
+            {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
           </div>
+        </div>
 
-          <div className="j-tabs">
-            {[{ key: "checkin", label: "Today" }, { key: "history", label: "History" }].map(t => (
-              <button key={t.key} className={`j-tab ${tab === t.key ? "active" : ""}`} onClick={() => setTab(t.key)}>{t.label}</button>
-            ))}
-          </div>
+        <div style={{
+          display: "flex", gap: 0, background: "rgba(255,255,255,0.07)",
+          borderRadius: 12, margin: "0 20px 20px", border: "1px solid rgba(255,255,255,0.12)",
+        }}>
+          {[{ key: "checkin", label: "Today" }, { key: "history", label: "History" }].map(t => (
+            <button key={t.key} onClick={() => setTab(t.key)} style={{
+              flex: 1, padding: "10px", border: "none", borderRadius: 10,
+              background: tab === t.key ? "rgba(99,102,241,0.3)" : "transparent",
+              color: tab === t.key ? "#a5b4fc" : "rgba(255,255,255,0.4)",
+              fontSize: 13, fontWeight: tab === t.key ? 600 : 400, cursor: "pointer", transition: "all 0.2s",
+            }}>
+              {t.label}
+            </button>
+          ))}
+        </div>
 
-          {tab === "checkin" && (
-            <div style={{ padding: "18px 20px 120px" }}>
-              {isLocked && (
-                <div style={{
-                  background: "rgba(74,222,128,0.35)", borderRadius: 16, padding: "14px 18px",
-                  marginBottom: 14, border: "1px solid rgba(74,222,128,0.7)",
-                  display: "flex", justifyContent: "space-between", alignItems: "center",
-                }}>
-                  <div style={{ fontSize: 13, color: "rgba(10,60,10,1)", fontWeight: 700 }}>✓  Today's entry is saved</div>
-                  <div style={{ fontSize: 11, color: "rgba(10,60,10,1)" }}>Unlocks {nextUnlockStr()}</div>
-                </div>
-              )}
-              <div style={{ opacity: isLocked ? 0.45 : 1, pointerEvents: isLocked ? "none" : "auto", transition: "opacity 0.3s" }}>
+        {tab === "checkin" && (
+          <div style={{ padding: "0 20px 40px" }}>
+            {isLocked && (
+              <div style={{
+                background: "rgba(74,222,128,0.1)", borderRadius: 12, padding: "12px 16px",
+                marginBottom: 14, border: "1px solid rgba(74,222,128,0.3)",
+                display: "flex", justifyContent: "space-between", alignItems: "center",
+              }}>
+                <div style={{ fontSize: 13, color: "#4ade80", fontWeight: 700 }}>✓  Today's entry is saved</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Unlocks {nextUnlockStr()}</div>
+              </div>
+            )}
 
-              <GlassCard>
+            <div style={{ opacity: isLocked ? 0.45 : 1, pointerEvents: isLocked ? "none" : "auto", transition: "opacity 0.3s" }}>
+
+              <Card>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
-                  <span style={{ fontSize: 13, color: TP, fontWeight: 500 }}>💼  Work hours</span>
+                  <span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>💼  Work hours</span>
                   <span style={{ fontSize: 22, fontWeight: 700, color: workColor }}>
-                    {workHours}<span style={{ fontSize: 13, fontWeight: 600, color: TP, marginLeft: 2 }}>h</span>
+                    {workHours}<span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginLeft: 2 }}>h</span>
                   </span>
                 </div>
-                <AuraSlider value={workHours} min={0} max={16} step={0.5} accentColor={workColor} sliderKey="work" onChange={setWorkHours} />
-              </GlassCard>
+                <BlueSlider value={workHours} min={0} max={16} step={0.5} color={workColor} sliderKey="work" onChange={setWorkHours} />
+              </Card>
 
-              <div className="j-side-grid">
-                <div className="j-side-card">
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+                <Card style={{ marginBottom: 0 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
-                    <span style={{ fontSize: 12, color: TP, fontWeight: 500 }}>☕ Caffeine</span>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>☕ Caffeine</span>
                     <span style={{ fontSize: 20, fontWeight: 700, color: caffeineColor }}>
-                      {caffeineCups}<span style={{ fontSize: 11, color: TP, marginLeft: 2 }}>cups</span>
+                      {caffeineCups}<span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginLeft: 2 }}>cups</span>
                     </span>
                   </div>
-                  <AuraSlider value={caffeineCups} min={0} max={7} step={1} accentColor={caffeineColor} sliderKey="caff" onChange={setCaffeineCups} />
-                </div>
-                <div className="j-side-card">
+                  <BlueSlider value={caffeineCups} min={0} max={7} step={1} color={caffeineColor} sliderKey="caff" onChange={setCaffeineCups} />
+                </Card>
+                <Card style={{ marginBottom: 0 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
-                    <span style={{ fontSize: 12, color: TP, fontWeight: 500 }}>🕐 Last coffee</span>
-                    <span style={{ fontSize: 20, fontWeight: 700, color: "#92400e" }}>{formatHour(lastCoffeeHour)}</span>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>🕐 Last coffee</span>
+                    <span style={{ fontSize: 20, fontWeight: 700, color: "#60a5fa" }}>{formatHour(lastCoffeeHour)}</span>
                   </div>
-                  <AuraSlider value={lastCoffeeHour} min={6} max={22} step={0.5} accentColor="#92400e" sliderKey="lcoff" onChange={setLastCoffeeHour} />
-                </div>
+                  <BlueSlider value={lastCoffeeHour} min={6} max={22} step={0.5} color="#60a5fa" sliderKey="lcoff" onChange={setLastCoffeeHour} />
+                </Card>
               </div>
 
-              <div className="j-side-grid">
-                <div className="j-side-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-                  <div style={{ fontSize: 12, color: TP, fontWeight: 500, marginBottom: 10 }}>🚬 Smoking</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+                <Card style={{ marginBottom: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", fontWeight: 500, marginBottom: 10 }}>🚬 Smoking</div>
                   <ToggleBtn value={smoking} onToggle={() => setSmoking(!smoking)} />
-                </div>
-                <div className="j-side-card" style={{ opacity: smoking ? 1 : 0.4, transition: "opacity 0.2s" }}>
+                </Card>
+                <Card style={{ marginBottom: 0, opacity: smoking ? 1 : 0.4, transition: "opacity 0.2s" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
-                    <span style={{ fontSize: 12, color: TP, fontWeight: 500 }}>💨 How much</span>
-                    <span style={{ fontSize: 20, fontWeight: 700, color: "#991b1b" }}>{smokingAmount}</span>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>💨 How much</span>
+                    <span style={{ fontSize: 20, fontWeight: 700, color: "#f87171" }}>{smokingAmount}</span>
                   </div>
-                  <AuraSlider value={smokingAmount} min={1} max={10} step={1} accentColor="#991b1b" sliderKey="smoke" onChange={setSmokingAmount} />
-                </div>
+                  <BlueSlider value={smokingAmount} min={1} max={10} step={1} color="#f87171" sliderKey="smoke" onChange={setSmokingAmount} />
+                </Card>
               </div>
 
-              <GlassCard>
+              <Card>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
-                  <span style={{ fontSize: 13, color: TP, fontWeight: 500 }}>📱  Screentime before bed</span>
+                  <span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>📱  Screentime before bed</span>
                   <span style={{ fontSize: 22, fontWeight: 700, color: screenColor }}>
-                    {screenBed}<span style={{ fontSize: 13, fontWeight: 600, color: TP, marginLeft: 2 }}>min</span>
+                    {screenBed}<span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginLeft: 2 }}>min</span>
                   </span>
                 </div>
-                <AuraSlider value={screenBed} min={0} max={120} step={5} accentColor={screenColor} sliderKey="screen" onChange={setScreenBed} />
-              </GlassCard>
+                <BlueSlider value={screenBed} min={0} max={120} step={5} color={screenColor} sliderKey="screen" onChange={setScreenBed} />
+              </Card>
 
-              <div className="j-side-grid">
-                <div className="j-side-card">
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+                <Card style={{ marginBottom: 0 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
-                    <span style={{ fontSize: 12, color: TP, fontWeight: 500 }}>🍷 Alcohol</span>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>🍷 Alcohol</span>
                     <span style={{ fontSize: 20, fontWeight: 700, color: alcoholColor }}>{alcoholAmount}</span>
                   </div>
-                  <AuraSlider value={alcoholAmount} min={0} max={10} step={1} accentColor={alcoholColor} sliderKey="alc" onChange={setAlcoholAmount} />
-                </div>
-                <div className="j-side-card" style={{ opacity: alcoholAmount > 0 ? 1 : 0.4, transition: "opacity 0.2s" }}>
+                  <BlueSlider value={alcoholAmount} min={0} max={10} step={1} color={alcoholColor} sliderKey="alc" onChange={setAlcoholAmount} />
+                </Card>
+                <Card style={{ marginBottom: 0, opacity: alcoholAmount > 0 ? 1 : 0.4, transition: "opacity 0.2s" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
-                    <span style={{ fontSize: 12, color: TP, fontWeight: 500 }}>🕐 Last drink</span>
-                    <span style={{ fontSize: 20, fontWeight: 700, color: "#92400e" }}>{formatHour(lastAlcoholHour)}</span>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>🕐 Last drink</span>
+                    <span style={{ fontSize: 20, fontWeight: 700, color: "#60a5fa" }}>{formatHour(lastAlcoholHour)}</span>
                   </div>
-                  <AuraSlider value={lastAlcoholHour} min={10} max={29} step={0.5} accentColor="#92400e" sliderKey="lalc" onChange={setLastAlcoholHour} />
-                </div>
+                  <BlueSlider value={lastAlcoholHour} min={10} max={29} step={0.5} color="#60a5fa" sliderKey="lalc" onChange={setLastAlcoholHour} />
+                </Card>
               </div>
 
-              <div className="j-side-grid">
-                <div className="j-side-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-                  <div style={{ fontSize: 12, color: TP, fontWeight: 500, marginBottom: 10 }}>📖 Reading</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+                <Card style={{ marginBottom: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", fontWeight: 500, marginBottom: 10 }}>📖 Reading</div>
                   <ToggleBtn value={reading} onToggle={() => setReading(!reading)} />
-                </div>
-                <div className="j-side-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-                  <div style={{ fontSize: 12, color: TP, fontWeight: 500, marginBottom: 10 }}>✍️ Journaling</div>
+                </Card>
+                <Card style={{ marginBottom: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", fontWeight: 500, marginBottom: 10 }}>✍️ Journaling</div>
                   <ToggleBtn value={journaling} onToggle={() => setJournaling(!journaling)} />
-                </div>
+                </Card>
               </div>
 
-              <GlassCard style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 18px" }}>
+              <Card style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
-                  <div style={{ fontSize: 14, color: TP, fontWeight: 600, marginBottom: 3 }}>🤝  Social activity</div>
-                  <div style={{ fontSize: 12, color: TS }}>Time spent with others today?</div>
+                  <div style={{ fontSize: 14, color: "rgba(255,255,255,0.8)", fontWeight: 600, marginBottom: 3 }}>🤝  Social activity</div>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)" }}>Time spent with others today?</div>
                 </div>
                 <ToggleBtn value={social} onToggle={() => setSocial(!social)} />
-              </GlassCard>
+              </Card>
 
-              <div className="j-side-grid">
-                <div className="j-side-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-                  <div style={{ fontSize: 12, color: TP, fontWeight: 500, marginBottom: 10 }}>🤒 Illness</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+                <Card style={{ marginBottom: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", fontWeight: 500, marginBottom: 10 }}>🤒 Illness</div>
                   <ToggleBtn value={illness} onToggle={() => setIllness(!illness)} />
-                </div>
-                <div className="j-side-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-                  <div style={{ fontSize: 12, color: TP, fontWeight: 500, marginBottom: 10 }}>🤕 Injury</div>
+                </Card>
+                <Card style={{ marginBottom: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", fontWeight: 500, marginBottom: 10 }}>🤕 Injury</div>
                   <ToggleBtn value={injury} onToggle={() => setInjury(!injury)} />
-                </div>
+                </Card>
               </div>
 
-              <div className="j-side-grid">
-                <div className="j-side-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-                  <div style={{ fontSize: 12, color: TP, fontWeight: 500, marginBottom: 10 }}>🛏️ Shared bed</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+                <Card style={{ marginBottom: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", fontWeight: 500, marginBottom: 10 }}>🛏️ Shared bed</div>
                   <ToggleBtn value={sharedBed} onToggle={() => setSharedBed(!sharedBed)} />
-                </div>
-                <div className="j-side-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-                  <div style={{ fontSize: 12, color: TP, fontWeight: 500, marginBottom: 10 }}>😏 Funny business</div>
+                </Card>
+                <Card style={{ marginBottom: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", fontWeight: 500, marginBottom: 10 }}>😏 Funny business</div>
                   <ToggleBtn value={funnyBusiness} onToggle={() => setFunnyBusiness(!funnyBusiness)} />
-                </div>
+                </Card>
               </div>
 
+              <style>{`.j-notes::placeholder { color: rgba(255,255,255,0.3) !important; }`}</style>
+              <textarea className="j-notes" placeholder="Any notes for today…" value={notes} onChange={e => setNotes(e.target.value)}
+                style={{
+                  width: "100%", minHeight: 90, background: "rgba(255,255,255,0.07)",
+                  border: "1px solid rgba(255,255,255,0.13)", borderRadius: 12,
+                  padding: "12px 14px", color: "#fff", fontSize: 13, resize: "none",
+                  outline: "none", boxSizing: "border-box", fontFamily: "inherit",
+                  marginBottom: 14, lineHeight: 1.6,
+                }} />
+
+            </div>
+
+            {isLocked ? (
+              <div style={{ textAlign: "center", padding: "14px", borderRadius: 12, background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)", color: "#4ade80", fontSize: 14, fontWeight: 600 }}>
+                ✓  Saved · Unlocks {nextUnlockStr()}
               </div>
-              <div style={{ marginTop: 4 }}>
-                {isLocked ? (
-                  <div style={{ textAlign: "center", padding: "15px", borderRadius: 18, background: "rgba(200,190,185,0.2)", border: "0.5px solid rgba(255,255,255,0.2)", color: "rgba(20,6,0,0.45)", fontSize: 14, fontWeight: 700 }}>
-                    ✓  Saved · Unlocks {nextUnlockStr()}
+            ) : saved ? (
+              <div style={{ textAlign: "center", padding: "14px", borderRadius: 12, background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)", color: "#4ade80", fontSize: 14, fontWeight: 600 }}>✓  Saved</div>
+            ) : (
+              <button onClick={saveEntry} style={{
+                width: "100%", padding: "14px", borderRadius: 12, border: "none",
+                background: "linear-gradient(135deg,#6366f1,#8b5cf6)",
+                color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer",
+              }}>Save Entry</button>
+            )}
+          </div>
+        )}
+
+        {tab === "history" && (
+          <div style={{ padding: "0 20px 40px" }}>
+            {sortedLogs.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "60px 20px" }}>
+                <div style={{ fontSize: 36, marginBottom: 12 }}>📓</div>
+                <div style={{ fontSize: 16, color: "rgba(255,255,255,0.4)" }}>No journal entries yet.</div>
+              </div>
+            ) : sortedLogs.map(log => (
+              <div key={log.id} style={{
+                background: "rgba(255,255,255,0.07)", borderRadius: 16,
+                border: "1px solid rgba(255,255,255,0.13)", padding: "16px 18px", marginBottom: 10,
+              }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: "#f0f0f8" }}>{fmt(log.date)}</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{log.time}</div>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 8 }}>
+                  {[
+                    { label: "Work",   value: `${log.work_hours ?? "—"}h`,   color: (log.work_hours ?? 8) <= 8 ? "#60a5fa" : "#facc15" },
+                    { label: "Sleep",  value: `${log.sleep_hours ?? "—"}h`,  color: (log.sleep_hours ?? 0) >= 7.5 ? "#4ade80" : "#f87171" },
+                    { label: "Social", value: log.social ? "Yes ✓" : "Solo", color: log.social ? "#4ade80" : "rgba(255,255,255,0.4)" },
+                  ].map(item => (
+                    <div key={item.label} style={{ background: "rgba(255,255,255,0.05)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", padding: "10px 8px", textAlign: "center" }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: item.color, marginBottom: 3 }}>{item.value}</div>
+                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>{item.label}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 8 }}>
+                  {[
+                    { label: "Caffeine", value: log.caffeine_cups != null ? `${log.caffeine_cups}c` : "—",  color: "#60a5fa" },
+                    { label: "Screen",   value: log.screen_bed   != null ? `${log.screen_bed}m`   : "—",  color: (log.screen_bed ?? 0) <= 20 ? "#60a5fa" : "#facc15" },
+                    { label: "Alcohol",  value: log.alcohol_amount != null ? `${log.alcohol_amount}` : "—", color: (log.alcohol_amount ?? 0) === 0 ? "#60a5fa" : "#facc15" },
+                  ].map(item => (
+                    <div key={item.label} style={{ background: "rgba(255,255,255,0.05)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", padding: "10px 8px", textAlign: "center" }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: item.color, marginBottom: 3 }}>{item.value}</div>
+                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>{item.label}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: log.notes ? 10 : 0 }}>
+                  {[
+                    { label: "📖 Read",    val: log.reading },
+                    { label: "✍️ Journal", val: log.journaling },
+                    { label: "🚬 Smoked",  val: log.smoking },
+                    { label: "🤒 Ill",     val: log.illness },
+                    { label: "🤕 Injured", val: log.injury },
+                    { label: "🛏️ Shared",  val: log.shared_bed },
+                    { label: "😏 Funny",   val: log.funny_business },
+                  ].filter(t => t.val).map(t => (
+                    <span key={t.label} style={{ fontSize: 11, background: "rgba(99,102,241,0.15)", borderRadius: 20, padding: "3px 10px", color: "#a5b4fc", fontWeight: 600, border: "1px solid rgba(99,102,241,0.3)" }}>
+                      {t.label}
+                    </span>
+                  ))}
+                </div>
+                {log.notes ? (
+                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontStyle: "italic", lineHeight: 1.6, borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: 10, marginTop: log.notes ? 4 : 0 }}>
+                    "{log.notes}"
                   </div>
-                ) : saved ? (
-                  <div style={{ textAlign: "center", padding: "15px", borderRadius: 18, background: "rgba(200,190,185,0.3)", border: "0.5px solid rgba(255,255,255,0.28)", color: "#14532d", fontSize: 14, fontWeight: 700 }}>✓  Saved</div>
                 ) : (
-                  <button className="j-save" onClick={saveEntry}>Save entry</button>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.25)", fontStyle: "italic" }}>No notes written</div>
                 )}
               </div>
-            </div>
-          )}
-
-          {tab === "history" && (
-            <div style={{ padding: "18px 20px 0" }}>
-              {sortedLogs.length === 0 ? (
-                <div style={{ textAlign: "center", padding: "60px 20px", color: "rgba(20,6,0,0.4)" }}>
-                  <div style={{ fontSize: 36, marginBottom: 12 }}>📓</div>
-                  <div>No journal entries yet.</div>
-                </div>
-              ) : sortedLogs.map(log => (
-                <div key={log.id} className="j-hcard">
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                    <div style={{ fontFamily: "'DM Serif Display', Georgia, serif", fontSize: 18, color: TP }}>{fmt(log.date)}</div>
-                    <div style={{ fontSize: 11, color: TM }}>{log.time}</div>
-                  </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 8 }}>
-                    {[
-                      { label: "Work",   value: `${log.work_hours ?? "—"}h`,  color: (log.work_hours ?? 8) <= 8 ? "#92400e" : "#c2410c" },
-                      { label: "Sleep",  value: `${log.sleep_hours ?? "—"}h`, color: (log.sleep_hours ?? 0) >= 7.5 ? "#92400e" : "#c2410c" },
-                      { label: "Social", value: log.social ? "Yes ✓" : "Solo", color: log.social ? "#92400e" : TM },
-                    ].map(item => (
-                      <div key={item.label} className="j-chip">
-                        <div style={{ fontSize: 14, fontWeight: 700, color: item.color, marginBottom: 3 }}>{item.value}</div>
-                        <div style={{ fontSize: 10, color: TM, letterSpacing: 0.3 }}>{item.label}</div>
-                      </div>
-                    ))}
-                  </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 8 }}>
-                    {[
-                      { label: "Caffeine", value: log.caffeine_cups != null ? `${log.caffeine_cups}c` : "—", color: "#92400e" },
-                      { label: "Screen", value: log.screen_bed != null ? `${log.screen_bed}m` : "—", color: (log.screen_bed ?? 0) <= 20 ? "#92400e" : "#c2410c" },
-                      { label: "Alcohol", value: log.alcohol_amount != null ? `${log.alcohol_amount}` : "—", color: (log.alcohol_amount ?? 0) === 0 ? "#92400e" : "#c2410c" },
-                    ].map(item => (
-                      <div key={item.label} className="j-chip">
-                        <div style={{ fontSize: 14, fontWeight: 700, color: item.color, marginBottom: 3 }}>{item.value}</div>
-                        <div style={{ fontSize: 10, color: TM, letterSpacing: 0.3 }}>{item.label}</div>
-                      </div>
-                    ))}
-                  </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: log.notes ? 10 : 0 }}>
-                    {[
-                      { label: "📖 Read",    val: log.reading },
-                      { label: "✍️ Journal", val: log.journaling },
-                      { label: "🚬 Smoked",  val: log.smoking },
-                      { label: "🤒 Ill",     val: log.illness },
-                      { label: "🤕 Injured", val: log.injury },
-                      { label: "🛏️ Shared",  val: log.shared_bed },
-                      { label: "😏 Funny",   val: log.funny_business },
-                    ].filter(t => t.val).map(t => (
-                      <span key={t.label} style={{ fontSize: 11, background: "rgba(255,255,255,0.25)", borderRadius: 20, padding: "3px 10px", color: TP, fontWeight: 600, border: "0.5px solid rgba(255,255,255,0.3)" }}>
-                        {t.label}
-                      </span>
-                    ))}
-                  </div>
-                  {log.notes ? (
-                    <div style={{ fontSize: 13, color: TS, fontStyle: "italic", lineHeight: 1.6, borderTop: "1px solid rgba(20,6,0,0.08)", paddingTop: 10, fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                      "{log.notes}"
-                    </div>
-                  ) : (
-                    <div style={{ fontSize: 12, color: TM, fontStyle: "italic" }}>No notes written</div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
