@@ -398,74 +398,26 @@ function WeatherWidget({ weatherLogs }) {
     });
 
   const latest = todayLogs[todayLogs.length - 1];
-
   if (!latest) return null;
 
-  const { emoji, label } = weatherCodeInfo(latest.weather_code ?? 0);
-  const uv = uvLabel(latest.uv_index ?? 0);
-  const cloudPct = latest.cloud_cover_pct ?? 0;
+  const { emoji } = weatherCodeInfo(latest.weather_code ?? 0);
 
   return (
     <div style={{
-      background: "rgba(255,255,255,0.05)",
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 6,
+      background: "rgba(255,255,255,0.08)",
       backdropFilter: "blur(12px)",
       borderRadius: 20,
-      padding: "16px",
-      border: "1px solid rgba(255,255,255,0.08)",
-      marginBottom: 16,
+      padding: "6px 12px",
+      border: "1px solid rgba(255,255,255,0.1)",
+      marginBottom: 20,
     }}>
-      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>
-        Today's Weather
-      </div>
-
-      {/* Current snapshot */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontSize: 36 }}>{emoji}</span>
-          <div>
-            <div style={{ fontSize: 28, fontWeight: 900, color: "#fff", letterSpacing: -1, lineHeight: 1 }}>
-              {latest.temperature_c}°C
-            </div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 2 }}>
-              Feels {latest.feels_like_c}°C · {label}
-            </div>
-          </div>
-        </div>
-        <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: 11, color: uv.color, fontWeight: 700, background: `${uv.color}18`, borderRadius: 8, padding: "3px 8px", border: `1px solid ${uv.color}33`, marginBottom: 4 }}>
-            UV {latest.uv_index} · {uv.label}
-          </div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>
-            ☁️ {cloudPct}% · 💨 {latest.wind_speed_kmh} km/h
-          </div>
-        </div>
-      </div>
-
-      {/* Period breakdown */}
-      {todayLogs.length > 1 && (
-        <div style={{ display: "grid", gridTemplateColumns: `repeat(${todayLogs.length}, 1fr)`, gap: 8 }}>
-          {todayLogs.map((log) => {
-            const info = weatherCodeInfo(log.weather_code ?? 0);
-            return (
-              <div key={log.period} style={{
-                background: "rgba(255,255,255,0.04)",
-                borderRadius: 12,
-                border: "1px solid rgba(255,255,255,0.07)",
-                padding: "10px 8px",
-                textAlign: "center",
-              }}>
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginBottom: 4 }}>
-                  {{ Morning: "🌅", Afternoon: "☀️", Evening: "🌙" }[log.period]}
-                  {" "}{log.period}
-                </div>
-                <div style={{ fontSize: 18 }}>{info.emoji}</div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", marginTop: 2 }}>{log.temperature_c}°</div>
-                <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>UV {log.uv_index}</div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      <span style={{ fontSize: 16 }}>{emoji}</span>
+      <span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{latest.temperature_c}°C</span>
+      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.45)" }}>·</span>
+      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.45)" }}>Feels {latest.feels_like_c}°C</span>
     </div>
   );
 }
