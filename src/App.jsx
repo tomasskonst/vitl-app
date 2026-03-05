@@ -1325,12 +1325,13 @@ function FoodPage({ foodLogs, setFoodLogs }) {
                 </div>
                 <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 16, border: "1px solid rgba(255,255,255,0.13)", padding: "16px", marginBottom: 16 }}>
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>✏️  Describe your meal</div>
-                  <textarea placeholder="e.g. 2 scrambled eggs, 2 slices of sourdough toast with butter, and a black coffee"
+                  <style>{`.food-ta::placeholder { color: rgba(255,255,255,0.4) !important; }`}</style>
+                  <textarea className="food-ta" placeholder="e.g. 2 scrambled eggs, 2 slices of sourdough toast with butter, and a black coffee"
                     value={textInput} onChange={e => setTextInput(e.target.value)}
-                    style={{ width: "100%", minHeight: 80, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 10, padding: "12px 14px", color: "#fff", fontSize: 13, resize: "none", outline: "none", boxSizing: "border-box", fontFamily: "inherit", marginBottom: 10, lineHeight: 1.5 }}
+                    style={{ width: "100%", minHeight: 80, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 10, padding: "12px 14px", color: "#fff", fontSize: 13, resize: "none", outline: "none", boxSizing: "border-box", fontFamily: "inherit", marginBottom: 10, lineHeight: 1.5 }} />
                   <button onClick={analyseText} disabled={loading || !textInput.trim()} style={{
                     width: "100%", padding: "13px", borderRadius: 10, border: "none",
-                    background: (!textInput.trim() || loading) ? "rgba(99,102,241,0.25)" : "linear-gradient(135deg,#6366f1,#8b5cf6)",
+                    background: (!textInput.trim() || loading) ? "rgba(99,102,241,0.6)" : "linear-gradient(135deg,#6366f1,#8b5cf6)",
                     color: "#fff",
                     fontSize: 14, fontWeight: 600, cursor: (!textInput.trim() || loading) ? "default" : "pointer",
                   }}>
