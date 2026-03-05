@@ -608,132 +608,129 @@ function MoodPage({ moodLogs, setMoodLogs, wolLogs, setWolLogs }) {
     setSaved(true);
   };
 
-  const allLogs = [...moodLogs].sort((a, b) => (b.date + b.period).localeCompare(a.date + a.period));
-
-  const groupedByDate = allLogs.reduce((acc, log) => {
-    if (!acc[log.date]) acc[log.date] = {};
-    acc[log.date][log.period] = log;
-    return acc;
-  }, {});
-
   return (
-    <div style={{ maxWidth: 480, margin: "0 auto", paddingTop: "env(safe-area-inset-top)", paddingBottom: 120 }}>
-      <div style={{
-        display: "flex", gap: 0, background: "rgba(255,255,255,0.04)",
-        borderRadius: 12, margin: "20px 20px 0", border: "1px solid rgba(255,255,255,0.06)",
-      }}>
-        {[{ key: "checkin", label: "Daily" }, { key: "wol", label: "Weekly" }].map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)} style={{
-            flex: 1, padding: "10px", border: "none", borderRadius: 10,
-            background: tab === t.key ? "rgba(99,102,241,0.3)" : "transparent",
-            color: tab === t.key ? "#a5b4fc" : "#555",
-            fontSize: 13, fontWeight: tab === t.key ? 600 : 400, cursor: "pointer", transition: "all 0.2s",
-          }}>
-            {t.label}
-          </button>
-        ))}
-      </div>
+    <div style={{ minHeight: "100vh", position: "relative" }}>
+      <div style={{ position: "absolute", inset: 0, zIndex: 0, background: "linear-gradient(160deg, #0a0a1a 0%, #0d1b4d 25%, #0a2a6e 45%, #0d3a7a 60%, #061428 100%)" }} />
+      <div style={{ position: "absolute", inset: 0, zIndex: 0, background: "radial-gradient(ellipse 60% 50% at 20% 40%, rgba(0,120,255,0.45) 0%, transparent 65%), radial-gradient(ellipse 50% 40% at 80% 60%, rgba(0,220,255,0.25) 0%, transparent 60%), radial-gradient(ellipse 70% 35% at 50% 80%, rgba(0,80,200,0.35) 0%, transparent 70%)", filter: "blur(18px)" }} />
 
-      {tab === "checkin" && (
-        <div style={{ padding: "20px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-            <div>
-              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#f0f0f8" }}>Mood Check-in</h2>
-              <div style={{ fontSize: 12, color: "#555", marginTop: 2 }}>
-                {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
+      <div style={{ position: "relative", zIndex: 1, maxWidth: 480, margin: "0 auto", paddingTop: "env(safe-area-inset-top)", paddingBottom: 120 }}>
+        <div style={{
+          display: "flex", gap: 0, background: "rgba(255,255,255,0.07)",
+          borderRadius: 12, margin: "20px 20px 0", border: "1px solid rgba(255,255,255,0.12)",
+        }}>
+          {[{ key: "checkin", label: "Daily" }, { key: "wol", label: "Weekly" }].map(t => (
+            <button key={t.key} onClick={() => setTab(t.key)} style={{
+              flex: 1, padding: "10px", border: "none", borderRadius: 10,
+              background: tab === t.key ? "rgba(99,102,241,0.3)" : "transparent",
+              color: tab === t.key ? "#a5b4fc" : "#555",
+              fontSize: 13, fontWeight: tab === t.key ? 600 : 400, cursor: "pointer", transition: "all 0.2s",
+            }}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {tab === "checkin" && (
+          <div style={{ padding: "20px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#f0f0f8" }}>Mood Check-in</h2>
+                <div style={{ fontSize: 12, color: "#555", marginTop: 2 }}>
+                  {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
+                </div>
+              </div>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 24, fontWeight: 700, color: scoreColor(mood) }}>{mood}</div>
+                <div style={{ fontSize: 10, color: "#555" }}>mood</div>
               </div>
             </div>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 24, fontWeight: 700, color: scoreColor(mood) }}>{mood}</div>
-              <div style={{ fontSize: 10, color: "#555" }}>mood</div>
-            </div>
-          </div>
 
-          <div style={{
-            background: isPeriodLocked ? "rgba(255,255,255,0.02)" : "rgba(99,102,241,0.1)",
-            borderRadius: 12, padding: "10px 14px", marginBottom: 14,
-            border: `1px solid ${isPeriodLocked ? "rgba(255,255,255,0.05)" : "rgba(99,102,241,0.3)"}`,
-            display: "flex", justifyContent: "space-between", alignItems: "center",
-          }}>
-            <div style={{ fontSize: 13, color: isPeriodLocked ? "#555" : "#a5b4fc", fontWeight: 600 }}>
-              {periodEmoji[currentPeriod]} {currentPeriod} check-in
+            <div style={{
+              background: isPeriodLocked ? "rgba(255,255,255,0.05)" : "rgba(99,102,241,0.15)",
+              borderRadius: 12, padding: "10px 14px", marginBottom: 14,
+              border: `1px solid ${isPeriodLocked ? "rgba(255,255,255,0.1)" : "rgba(99,102,241,0.4)"}`,
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+            }}>
+              <div style={{ fontSize: 13, color: isPeriodLocked ? "#555" : "#a5b4fc", fontWeight: 600 }}>
+                {periodEmoji[currentPeriod]} {currentPeriod} check-in
+              </div>
+              {isPeriodLocked ? (
+                <div style={{ fontSize: 12, color: "#555" }}>
+                  Next at <span style={{ color: "#a5b4fc", fontWeight: 700 }}>{getNextPeriodTime()}</span>
+                </div>
+              ) : (
+                <div style={{ fontSize: 11, color: "#666" }}>Now open</div>
+              )}
             </div>
-            {isPeriodLocked ? (
-              <div style={{ fontSize: 12, color: "#555" }}>
-                Next at <span style={{ color: "#a5b4fc", fontWeight: 700 }}>{getNextPeriodTime()}</span>
+
+            {savedPeriods.length > 0 && (
+              <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+                {MOOD_PERIODS.map(p => savedPeriods.includes(p) && (
+                  <div key={p} style={{
+                    fontSize: 11, padding: "4px 10px", borderRadius: 20,
+                    background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)", color: "#4ade80",
+                  }}>
+                    {periodEmoji[p]} {p} ✓
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div style={{ opacity: isPeriodLocked ? 0.45 : 1, pointerEvents: isPeriodLocked ? "none" : "auto", transition: "opacity 0.3s" }}>
+              <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.13)", padding: "12px 14px", marginBottom: 10 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                  <span style={{ fontSize: 12, color: "#888" }}>{periodEmoji[currentPeriod]} {currentPeriod} Mood</span>
+                  <span style={{ fontSize: 15, fontWeight: 700, color: scoreColor(mood) }}>{mood}</span>
+                </div>
+                <Slider value={mood} onChange={setMood} color={scoreColor(mood)} />
+              </div>
+
+              <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.13)", padding: "12px 14px", marginBottom: 10 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                  <span style={{ fontSize: 12, color: "#888" }}>⚡ {currentPeriod} Energy</span>
+                  <span style={{ fontSize: 15, fontWeight: 700, color: scoreColor(energy) }}>{energy}</span>
+                </div>
+                <Slider value={energy} onChange={setEnergy} color={scoreColor(energy)} />
+              </div>
+
+              <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.13)", padding: "12px 14px", marginBottom: 10 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                  <span style={{ fontSize: 12, color: "#888" }}>🌊 {currentPeriod} Stress</span>
+                  <span style={{ fontSize: 15, fontWeight: 700, color: stressColor }}>{stress}</span>
+                </div>
+                <Slider value={stress} onChange={setStress} color={stressColor} />
+              </div>
+
+              <textarea placeholder="Any notes for this period…" value={notes} onChange={e => setNotes(e.target.value)}
+                style={{
+                  width: "100%", minHeight: 70, background: "rgba(255,255,255,0.07)",
+                  border: "1px solid rgba(255,255,255,0.13)", borderRadius: 12,
+                  padding: "12px 14px", color: "#ddd", fontSize: 13, resize: "none",
+                  outline: "none", boxSizing: "border-box", fontFamily: "inherit", marginBottom: 14,
+                }} />
+            </div>
+
+            {saved ? (
+              <div style={{ textAlign: "center", padding: "14px", background: "rgba(74,222,128,0.1)", borderRadius: 12, color: "#4ade80", fontSize: 14, fontWeight: 600 }}>
+                ✓  {currentPeriod} check-in saved!
               </div>
             ) : (
-              <div style={{ fontSize: 11, color: "#666" }}>Now open</div>
+              <button onClick={saveEntry} disabled={isPeriodLocked} style={{
+                width: "100%", padding: "14px", borderRadius: 12, border: "none",
+                background: isPeriodLocked ? "rgba(99,102,241,0.2)" : "linear-gradient(135deg,#6366f1,#8b5cf6)",
+                color: isPeriodLocked ? "#555" : "#fff",
+                fontSize: 15, fontWeight: 600, cursor: isPeriodLocked ? "not-allowed" : "pointer",
+              }}>
+                {isPeriodLocked ? `Next entry at ${getNextPeriodTime()}` : `Save ${currentPeriod} Check-in`}
+              </button>
             )}
           </div>
+        )}
 
-          {savedPeriods.length > 0 && (
-            <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
-              {MOOD_PERIODS.map(p => savedPeriods.includes(p) && (
-                <div key={p} style={{
-                  fontSize: 11, padding: "4px 10px", borderRadius: 20,
-                  background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)", color: "#4ade80",
-                }}>
-                  {periodEmoji[p]} {p} ✓
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div style={{ opacity: isPeriodLocked ? 0.45 : 1, pointerEvents: isPeriodLocked ? "none" : "auto", transition: "opacity 0.3s" }}>
-            <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)", padding: "12px 14px", marginBottom: 10 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                <span style={{ fontSize: 12, color: "#888" }}>{periodEmoji[currentPeriod]} {currentPeriod} Mood</span>
-                <span style={{ fontSize: 15, fontWeight: 700, color: scoreColor(mood) }}>{mood}</span>
-              </div>
-              <Slider value={mood} onChange={setMood} color={scoreColor(mood)} />
-            </div>
-
-            <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)", padding: "12px 14px", marginBottom: 10 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                <span style={{ fontSize: 12, color: "#888" }}>⚡ {currentPeriod} Energy</span>
-                <span style={{ fontSize: 15, fontWeight: 700, color: scoreColor(energy) }}>{energy}</span>
-              </div>
-              <Slider value={energy} onChange={setEnergy} color={scoreColor(energy)} />
-            </div>
-
-            <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)", padding: "12px 14px", marginBottom: 10 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                <span style={{ fontSize: 12, color: "#888" }}>🌊 {currentPeriod} Stress</span>
-                <span style={{ fontSize: 15, fontWeight: 700, color: stressColor }}>{stress}</span>
-              </div>
-              <Slider value={stress} onChange={setStress} color={stressColor} />
-            </div>
-
-            <textarea placeholder="Any notes for this period…" value={notes} onChange={e => setNotes(e.target.value)}
-              style={{
-                width: "100%", minHeight: 70, background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12,
-                padding: "12px 14px", color: "#ddd", fontSize: 13, resize: "none",
-                outline: "none", boxSizing: "border-box", fontFamily: "inherit", marginBottom: 14,
-              }} />
-          </div>
-
-          {saved ? (
-            <div style={{ textAlign: "center", padding: "14px", background: "rgba(74,222,128,0.1)", borderRadius: 12, color: "#4ade80", fontSize: 14, fontWeight: 600 }}>
-              ✓  {currentPeriod} check-in saved!
-            </div>
-          ) : (
-            <button onClick={saveEntry} disabled={isPeriodLocked} style={{
-              width: "100%", padding: "14px", borderRadius: 12, border: "none",
-              background: isPeriodLocked ? "rgba(99,102,241,0.2)" : "linear-gradient(135deg,#6366f1,#8b5cf6)",
-              color: isPeriodLocked ? "#555" : "#fff",
-              fontSize: 15, fontWeight: 600, cursor: isPeriodLocked ? "not-allowed" : "pointer",
-            }}>
-              {isPeriodLocked ? `Next entry at ${getNextPeriodTime()}` : `Save ${currentPeriod} Check-in`}
-            </button>
-          )}
-        </div>
-      )}
-
-      {tab === "wol" && (
-        <WOLPage wolLogs={wolLogs} setWolLogs={setWolLogs} />
-      )}
+        {tab === "wol" && (
+          <WOLPage wolLogs={wolLogs} setWolLogs={setWolLogs} />
+        )}
+      </div>
     </div>
   );
 }
