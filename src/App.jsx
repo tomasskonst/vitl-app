@@ -1219,7 +1219,6 @@ function WOLPage({ wolLogs, setWolLogs }) {
   );
 }
 
-// ── Food Page ────────────────────────────────────────────────────────────────
 function FoodPage({ foodLogs, setFoodLogs }) {
   const [image, setImage]       = useState(null);
   const [imageData, setImageData] = useState(null);
@@ -1295,6 +1294,142 @@ function FoodPage({ foodLogs, setFoodLogs }) {
 
   const reset = () => { setImage(null); setImageData(null); setResult(null); setSavedFood(false); setError(null); setTextInput(""); };
 
+  // ── Selected log detail view (full page, same bg as other pages) ──
+  if (selectedLog) {
+    return (
+      <div style={{ minHeight: "100vh", position: "relative" }}>
+        <div style={{ position: "absolute", inset: 0, zIndex: 0, background: "linear-gradient(160deg, #0a0a1a 0%, #0d1b4d 25%, #0a2a6e 45%, #0d3a7a 60%, #061428 100%)" }} />
+        <div style={{ position: "absolute", inset: 0, zIndex: 0, background: "radial-gradient(ellipse 60% 50% at 20% 40%, rgba(0,120,255,0.45) 0%, transparent 65%), radial-gradient(ellipse 50% 40% at 80% 60%, rgba(0,220,255,0.25) 0%, transparent 60%), radial-gradient(ellipse 70% 35% at 50% 80%, rgba(0,80,200,0.35) 0%, transparent 70%)", filter: "blur(18px)" }} />
+        <div style={{ position: "relative", zIndex: 1, maxWidth: 480, margin: "0 auto", padding: "calc(env(safe-area-inset-top) + 24px) 20px 160px", overflowY: "auto" }}>
+
+          {/* Header */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+            <div style={{ flex: 1, marginRight: 12 }}>
+              <div style={{ fontSize: 22, fontWeight: 700, color: "#f0f0f8", lineHeight: 1.2 }}>{selectedLog.meal_name}</div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>{fmt(selectedLog.date)} · {selectedLog.time}</div>
+            </div>
+            <button onClick={() => setSelectedLog(null)} style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.13)", borderRadius: 12, padding: "10px 16px", color: "rgba(255,255,255,0.6)", fontSize: 13, cursor: "pointer", fontWeight: 600, whiteSpace: "nowrap" }}>← Back</button>
+          </div>
+
+          {/* Image */}
+          {selectedLog.image && (
+            <img src={selectedLog.image} alt="meal" style={{ width: "100%", borderRadius: 16, maxHeight: 260, objectFit: "cover", marginBottom: 16 }} />
+          )}
+
+          {/* Quality + notes */}
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 20 }}>
+            <div style={{ flex: 1 }}>
+              {selectedLog.notes && (
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, fontStyle: "italic" }}>{selectedLog.notes}</div>
+              )}
+              {selectedLog.confidence_score != null && (
+                <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Confidence:</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: selectedLog.confidence_score >= 80 ? "#4ade80" : selectedLog.confidence_score >= 60 ? "#facc15" : "#f87171" }}>
+                    {selectedLog.confidence_score}%
+                  </div>
+                </div>
+              )}
+            </div>
+            {selectedLog.quality_score != null && (
+              <div style={{ background: scoreBg(selectedLog.quality_score), border: `1px solid ${scoreColor(selectedLog.quality_score)}44`, borderRadius: 12, padding: "10px 16px", textAlign: "center", flexShrink: 0 }}>
+                <div style={{ fontSize: 24, fontWeight: 700, color: scoreColor(selectedLog.quality_score) }}>{selectedLog.quality_score}</div>
+                <div style={{ fontSize: 10, color: scoreColor(selectedLog.quality_score), opacity: 0.8 }}>{selectedLog.quality_label}</div>
+              </div>
+            )}
+          </div>
+
+          {/* Macros */}
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Macros</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8, marginBottom: 20 }}>
+            {[
+              { label: "Calories", value: selectedLog.calories,  unit: "kcal", color: "#f59e0b" },
+              { label: "Protein",  value: selectedLog.protein_g, unit: "g",    color: "#6366f1" },
+              { label: "Carbs",    value: selectedLog.carbs_g,   unit: "g",    color: "#f97316" },
+              { label: "Fat",      value: selectedLog.fat_g,     unit: "g",    color: "#ec4899" },
+            ].map(m => (
+              <div key={m.label} style={{ background: "rgba(255,255,255,0.07)", borderRadius: 10, border: `1px solid ${m.color}44`, padding: "10px 8px", textAlign: "center" }}>
+                <div style={{ fontSize: 16, fontWeight: 700, color: m.color }}>{m.value}</div>
+                <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginTop: 2 }}>{m.unit}</div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)" }}>{m.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Fats & Other */}
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Fats & Other</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 20 }}>
+            {[
+              { label: "Fibre",       value: selectedLog.fibre_g,         unit: "g",  color: "#4ade80" },
+              { label: "Sugar",       value: selectedLog.sugar_g,         unit: "g",  color: "#f472b6" },
+              { label: "Saturated",   value: selectedLog.saturated_fat_g, unit: "g",  color: "#fb923c" },
+              { label: "Trans Fat",   value: selectedLog.trans_fat_g,     unit: "g",  color: "#f87171" },
+              { label: "Cholesterol", value: selectedLog.cholesterol_mg,  unit: "mg", color: "#facc15" },
+              { label: "Sodium",      value: selectedLog.sodium_mg,       unit: "mg", color: "#60a5fa" },
+            ].map(m => (
+              <div key={m.label} style={{ background: "rgba(255,255,255,0.07)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.13)", padding: "10px 8px" }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: m.color }}>{m.value}<span style={{ fontSize: 10, marginLeft: 2, opacity: 0.7 }}>{m.unit}</span></div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", marginTop: 3 }}>{m.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Minerals */}
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Minerals</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 20 }}>
+            {[
+              { label: "Potassium",  value: selectedLog.potassium_mg,  unit: "mg", color: "#a78bfa" },
+              { label: "Calcium",    value: selectedLog.calcium_mg,    unit: "mg", color: "#34d399" },
+              { label: "Iron",       value: selectedLog.iron_mg,       unit: "mg", color: "#fb923c" },
+              { label: "Magnesium",  value: selectedLog.magnesium_mg,  unit: "mg", color: "#60a5fa" },
+              { label: "Phosphorus", value: selectedLog.phosphorus_mg, unit: "mg", color: "#facc15" },
+              { label: "Zinc",       value: selectedLog.zinc_mg,       unit: "mg", color: "#f472b6" },
+            ].map(m => (
+              <div key={m.label} style={{ background: "rgba(255,255,255,0.07)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.13)", padding: "10px 8px" }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: m.color }}>{m.value}<span style={{ fontSize: 10, marginLeft: 2, opacity: 0.7 }}>{m.unit}</span></div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", marginTop: 3 }}>{m.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Vitamins */}
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Vitamins</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 20 }}>
+            {[
+              { label: "Vitamin A",   value: selectedLog.vitamin_a_ug,   unit: "μg", color: "#f59e0b" },
+              { label: "Vitamin C",   value: selectedLog.vitamin_c_mg,   unit: "mg", color: "#34d399" },
+              { label: "Vitamin D",   value: selectedLog.vitamin_d_ug,   unit: "μg", color: "#facc15" },
+              { label: "Vitamin E",   value: selectedLog.vitamin_e_mg,   unit: "mg", color: "#fb923c" },
+              { label: "Vitamin K",   value: selectedLog.vitamin_k_ug,   unit: "μg", color: "#a78bfa" },
+              { label: "Vitamin B12", value: selectedLog.vitamin_b12_ug, unit: "μg", color: "#60a5fa" },
+              { label: "Vitamin B6",  value: selectedLog.vitamin_b6_mg,  unit: "mg", color: "#f472b6" },
+              { label: "Folate",      value: selectedLog.folate_ug,      unit: "μg", color: "#4ade80" },
+            ].map(m => (
+              <div key={m.label} style={{ background: "rgba(255,255,255,0.07)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.13)", padding: "10px 8px" }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: m.color }}>{m.value}<span style={{ fontSize: 10, marginLeft: 2, opacity: 0.7 }}>{m.unit}</span></div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", marginTop: 3 }}>{m.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Ingredients */}
+          {selectedLog.main_ingredients?.length > 0 && (
+            <>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Detected Ingredients</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
+                {selectedLog.main_ingredients.map((ing, i) => (
+                  <span key={i} style={{ fontSize: 12, padding: "6px 14px", borderRadius: 20, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.13)", color: "rgba(255,255,255,0.7)" }}>
+                    {ing}
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ minHeight: "100vh", position: "relative" }}>
       <div style={{ position: "absolute", inset: 0, zIndex: 0, background: "linear-gradient(160deg, #0a0a1a 0%, #0d1b4d 25%, #0a2a6e 45%, #0d3a7a 60%, #061428 100%)" }} />
@@ -1353,8 +1488,7 @@ function FoodPage({ foodLogs, setFoodLogs }) {
                   <button onClick={analyseText} disabled={loading || !textInput.trim()} style={{
                     width: "100%", padding: "13px", borderRadius: 10, border: "none",
                     background: (!textInput.trim() || loading) ? "rgba(99,102,241,0.6)" : "linear-gradient(135deg,#6366f1,#8b5cf6)",
-                    color: "#fff",
-                    fontSize: 14, fontWeight: 600, cursor: (!textInput.trim() || loading) ? "default" : "pointer",
+                    color: "#fff", fontSize: 14, fontWeight: 600, cursor: (!textInput.trim() || loading) ? "default" : "pointer",
                   }}>
                     {loading ? "Analysing…" : "✦  Analyse Description"}
                   </button>
@@ -1479,35 +1613,6 @@ function FoodPage({ foodLogs, setFoodLogs }) {
                 <button onClick={saveLog} style={{ padding: "13px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Save Log</button>
               </div>
             )}
-          </div>
-        )}
-
-        {selectedLog && (
-          <div style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)", overflowY: "auto", padding: "24px 20px 60px" }}>
-            <div style={{ maxWidth: 480, margin: "0 auto" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                <div>
-                  <div style={{ fontSize: 18, fontWeight: 700, color: "#f0f0f8" }}>{selectedLog.meal_name}</div>
-                  <div style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{fmt(selectedLog.date)} · {selectedLog.time}</div>
-                </div>
-                <button onClick={() => setSelectedLog(null)} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.13)", borderRadius: 10, padding: "8px 14px", color: "#aaa", fontSize: 13, cursor: "pointer" }}>✕ Close</button>
-              </div>
-              {selectedLog.image && <img src={selectedLog.image} alt="meal" style={{ width: "100%", borderRadius: 16, maxHeight: 220, objectFit: "cover", marginBottom: 16 }} />}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8 }}>
-                {[
-                  { label: "Calories", value: selectedLog.calories,  unit: "kcal", color: "#f59e0b" },
-                  { label: "Protein",  value: selectedLog.protein_g, unit: "g",    color: "#6366f1" },
-                  { label: "Carbs",    value: selectedLog.carbs_g,   unit: "g",    color: "#f97316" },
-                  { label: "Fat",      value: selectedLog.fat_g,     unit: "g",    color: "#ec4899" },
-                ].map(m => (
-                  <div key={m.label} style={{ background: "rgba(255,255,255,0.07)", borderRadius: 10, border: `1px solid ${m.color}44`, padding: "10px 8px", textAlign: "center" }}>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: m.color }}>{m.value}</div>
-                    <div style={{ fontSize: 9, color: "#666", marginTop: 2 }}>{m.unit}</div>
-                    <div style={{ fontSize: 10, color: "#888" }}>{m.label}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         )}
 
