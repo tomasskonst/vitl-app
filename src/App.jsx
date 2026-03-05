@@ -622,7 +622,7 @@ function MoodPage({ moodLogs, setMoodLogs, wolLogs, setWolLogs }) {
             <button key={t.key} onClick={() => setTab(t.key)} style={{
               flex: 1, padding: "10px", border: "none", borderRadius: 10,
               background: tab === t.key ? "rgba(99,102,241,0.3)" : "transparent",
-              color: tab === t.key ? "#a5b4fc" : "#555",
+              color: tab === t.key ? "#a5b4fc" : "rgba(255,255,255,0.4)",
               fontSize: 13, fontWeight: tab === t.key ? 600 : 400, cursor: "pointer", transition: "all 0.2s",
             }}>
               {t.label}
@@ -635,13 +635,13 @@ function MoodPage({ moodLogs, setMoodLogs, wolLogs, setWolLogs }) {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
               <div>
                 <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#f0f0f8" }}>Mood Check-in</h2>
-                <div style={{ fontSize: 12, color: "#555", marginTop: 2 }}>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", marginTop: 2 }}>
                   {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
                 </div>
               </div>
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: 24, fontWeight: 700, color: scoreColor(mood) }}>{mood}</div>
-                <div style={{ fontSize: 10, color: "#555" }}>mood</div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>mood</div>
               </div>
             </div>
 
@@ -651,15 +651,15 @@ function MoodPage({ moodLogs, setMoodLogs, wolLogs, setWolLogs }) {
               border: `1px solid ${isPeriodLocked ? "rgba(255,255,255,0.1)" : "rgba(99,102,241,0.4)"}`,
               display: "flex", justifyContent: "space-between", alignItems: "center",
             }}>
-              <div style={{ fontSize: 13, color: isPeriodLocked ? "#555" : "#a5b4fc", fontWeight: 600 }}>
-                {periodEmoji[currentPeriod]} {currentPeriod} check-in
+              <div style={{ fontSize: 13, color: isPeriodLocked ? "rgba(255,255,255,0.35)" : "#a5b4fc", fontWeight: 600 }}>
+              {periodEmoji[currentPeriod]} {currentPeriod} check-in
               </div>
               {isPeriodLocked ? (
-                <div style={{ fontSize: 12, color: "#555" }}>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>
                   Next at <span style={{ color: "#a5b4fc", fontWeight: 700 }}>{getNextPeriodTime()}</span>
                 </div>
               ) : (
-                <div style={{ fontSize: 11, color: "#666" }}>Now open</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>Now open</div>
               )}
             </div>
 
@@ -679,7 +679,7 @@ function MoodPage({ moodLogs, setMoodLogs, wolLogs, setWolLogs }) {
             <div style={{ opacity: isPeriodLocked ? 0.45 : 1, pointerEvents: isPeriodLocked ? "none" : "auto", transition: "opacity 0.3s" }}>
               <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.13)", padding: "12px 14px", marginBottom: 10 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                  <span style={{ fontSize: 12, color: "#888" }}>{periodEmoji[currentPeriod]} {currentPeriod} Mood</span>
+                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>{periodEmoji[currentPeriod]} {currentPeriod} Mood</span>
                   <span style={{ fontSize: 15, fontWeight: 700, color: scoreColor(mood) }}>{mood}</span>
                 </div>
                 <Slider value={mood} onChange={setMood} color={scoreColor(mood)} />
@@ -687,7 +687,7 @@ function MoodPage({ moodLogs, setMoodLogs, wolLogs, setWolLogs }) {
 
               <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.13)", padding: "12px 14px", marginBottom: 10 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                  <span style={{ fontSize: 12, color: "#888" }}>⚡ {currentPeriod} Energy</span>
+                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>⚡ {currentPeriod} Energy</span>
                   <span style={{ fontSize: 15, fontWeight: 700, color: scoreColor(energy) }}>{energy}</span>
                 </div>
                 <Slider value={energy} onChange={setEnergy} color={scoreColor(energy)} />
@@ -695,7 +695,7 @@ function MoodPage({ moodLogs, setMoodLogs, wolLogs, setWolLogs }) {
 
               <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.13)", padding: "12px 14px", marginBottom: 10 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                  <span style={{ fontSize: 12, color: "#888" }}>🌊 {currentPeriod} Stress</span>
+                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>🌊 {currentPeriod} Stress</span>
                   <span style={{ fontSize: 15, fontWeight: 700, color: stressColor }}>{stress}</span>
                 </div>
                 <Slider value={stress} onChange={setStress} color={stressColor} />
