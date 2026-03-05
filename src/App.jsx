@@ -470,12 +470,12 @@ function HomePage({ moodLogs, journalLogs, foodLogs, wolLogs, weatherLogs, setPa
     <div style={{ minHeight: "100vh", position: "relative" }}>
       <div style={{
         position: "absolute", inset: 0, zIndex: 0,
-        background: "#03030f",
+        background: "linear-gradient(160deg, #0a0a1a 0%, #0d1b4d 25%, #0a2a6e 45%, #0d3a7a 60%, #061428 100%)",
       }} />
       <div style={{
         position: "absolute", inset: 0, zIndex: 0,
-        background: "radial-gradient(ellipse 55% 70% at 0% 50%, rgba(180,210,255,0.85) 0%, rgba(60,100,255,0.5) 30%, transparent 65%), radial-gradient(ellipse 40% 25% at 75% 45%, rgba(0,230,255,0.6) 0%, rgba(0,100,255,0.3) 40%, transparent 70%), radial-gradient(ellipse 35% 15% at 80% 62%, rgba(0,255,220,0.4) 0%, transparent 60%), radial-gradient(ellipse 30% 20% at 70% 90%, rgba(0,180,255,0.35) 0%, transparent 60%)",
-        filter: "blur(22px)",
+        background: "radial-gradient(ellipse 60% 50% at 20% 40%, rgba(0,120,255,0.45) 0%, transparent 65%), radial-gradient(ellipse 50% 40% at 80% 60%, rgba(0,220,255,0.25) 0%, transparent 60%), radial-gradient(ellipse 70% 35% at 50% 80%, rgba(0,80,200,0.35) 0%, transparent 70%)",
+        filter: "blur(18px)",
       }} />
 
       <div style={{ position: "relative", zIndex: 1, padding: "calc(env(safe-area-inset-top) + 28px) 20px 180px" }}>
