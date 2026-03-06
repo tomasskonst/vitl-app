@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "./supabase";
+import SyncPage from "./SyncPage";
 
 const API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY || "";
 
@@ -2090,7 +2091,7 @@ export default function App() {
           {page === "journal"  && <JournalPage  journalLogs={journalLogs} setJournalLogs={setJournalLogs} />}
           {page === "food"     && <FoodPage     foodLogs={foodLogs} setFoodLogs={setFoodLogs} />}
           {page === "insights" && <InsightsPage moodLogs={moodLogs} journalLogs={journalLogs} foodLogs={foodLogs} wolLogs={wolLogs} weatherLogs={weatherLogs} />}
-          {page === "sync"     && <div style={{color:"#fff",padding:40}}>Sync coming soon</div>}
+          {page === "sync"     && <SyncPage />}
         </div>
       )}
 
