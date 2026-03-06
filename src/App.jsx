@@ -2090,6 +2090,7 @@ export default function App() {
           {page === "journal"  && <JournalPage  journalLogs={journalLogs} setJournalLogs={setJournalLogs} />}
           {page === "food"     && <FoodPage     foodLogs={foodLogs} setFoodLogs={setFoodLogs} />}
           {page === "insights" && <InsightsPage moodLogs={moodLogs} journalLogs={journalLogs} foodLogs={foodLogs} wolLogs={wolLogs} weatherLogs={weatherLogs} />}
+          {page === "sync"     && <div style={{color:"#fff",padding:40}}>Sync coming soon</div>}
         </div>
       )}
 
