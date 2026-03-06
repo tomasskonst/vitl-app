@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 import JSZip from "jszip";
 
@@ -507,6 +507,12 @@ export default function SyncPage() {
     ? Object.values(parsed).reduce((s, arr) => s + (arr?.length || 0), 0)
     : 0;
 
+  const [lastSync, setLastSync] = useState(null);
+  useEffect(() => {
+    supabase.from("garmin_sleep").select("calendar_date").order("calendar_date", { ascending: false }).limit(1)
+      .then(({ data }) => { if (data?.[0]) setLastSync(data[0].calendar_date); });
+  }, [phase]);
+
   return (
     <div style={styles.page}>
       <div style={styles.header}>
@@ -642,6 +648,12 @@ export default function SyncPage() {
           </div>
         </div>
       )}
+
+    {lastSync && (
+      <div style={{ textAlign: "center", marginTop: 24, fontSize: 12, color: "#475569" }}>
+        Last synced data: <span style={{ color: "#6366f1", fontWeight: 600 }}>{lastSync}</span>
+      </div>
+    )}
     </div>
   );
 }
