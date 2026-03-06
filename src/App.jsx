@@ -1794,43 +1794,250 @@ function InsightsPage({ moodLogs, journalLogs, foodLogs, wolLogs, weatherLogs })
 }
 
 // ── Bottom Nav ───────────────────────────────────────────────────────────────
+// Replace your existing BottomNav function and the App return JSX with this.
+// Also update your App useState for page to include "insights" and "sync" as
+// valid pages (they're opened via the overlay, not the pill).
+
 function BottomNav({ page, setPage }) {
-  const tabs = [
-    { key: "home",     icon: "⌂",  label: "Home"    },
-    { key: "mood",     icon: "✦",  label: "Mood"    },
-    { key: "journal",  icon: "≡",  label: "Journal" },
-    { key: "food",     icon: "♥",  label: "Food"    },
-    { key: "insights", icon: "⚡", label: "Insights" },
+  const [overlayOpen, setOverlayOpen] = React.useState(false);
+
+  const pillTabs = [
+    { key: "home",    icon: "⌂",  label: "Home"    },
+    { key: "mood",    icon: "✦",  label: "Mood"    },
+    { key: "journal", icon: "≡",  label: "Journal" },
+    { key: "food",    icon: "♥",  label: "Food"    },
   ];
+
+  const overlayItems = [
+    { key: "insights", icon: "⚡", label: "Insights",  desc: "Patterns from your data" },
+    { key: "sync",     icon: "↻",  label: "Data Sync", desc: "Import Garmin & more"    },
+  ];
+
+  const handleOverlayPick = (key) => {
+    setOverlayOpen(false);
+    setPage(key);
+  };
+
+  const isPillActive = pillTabs.some(t => t.key === page);
+  const isOverlayPageActive = overlayItems.some(t => t.key === page);
 
   return (
     <>
       <style>{`
-        .nav-pill-wrap { position:fixed; bottom:0; left:0; right:0; z-index:9999; display:flex; align-items:center; justify-content:center; padding:0 12px 28px; pointer-events:none; }
-        .nav-pill { display:flex; align-items:center; background:#1c1c2a; border-radius:40px; padding:6px 8px; gap:0px; box-shadow:0 8px 32px rgba(0,0,0,0.55),0 2px 8px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.07); pointer-events:all; flex:1; min-width:0; }
-        .nav-btn { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; padding:8px 0; border-radius:32px; border:none; background:transparent; cursor:pointer; transition:background 0.18s,transform 0.14s; flex:1; min-width:0; }
-        .nav-btn:active { transform:scale(0.93); }
-        .nav-btn.active { background:#2a2a3e; box-shadow:inset 0 1px 0 rgba(255,255,255,0.09); }
-        .nav-btn-icon { font-size:18px; line-height:1; color:rgba(255,255,255,0.28); transition:color 0.18s,transform 0.18s; }
-        .nav-btn.active .nav-btn-icon { color:#ffffff; transform:scale(1.08); }
-        .nav-btn-label { font-size:9px; font-weight:500; color:rgba(255,255,255,0.28); transition:color 0.18s; font-family:system-ui,-apple-system,sans-serif; }
-        .nav-btn.active .nav-btn-label { color:#ffffff; font-weight:700; }
-        .home-indicator { position:fixed; bottom:8px; left:50%; transform:translateX(-50%); width:120px; height:4px; border-radius:2px; background:rgba(255,255,255,0.2); z-index:10000; pointer-events:none; }
+        /* ── layout ── */
+        .nav-wrap {
+          position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999;
+          display: flex; align-items: flex-end; justify-content: center;
+          padding: 0 16px 28px; gap: 10px; pointer-events: none;
+        }
+
+        /* ── pill ── */
+        .nav-pill {
+          display: flex; align-items: center;
+          background: #1c1c2a;
+          border-radius: 40px; padding: 6px 8px; gap: 0;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.4),
+                      inset 0 1px 0 rgba(255,255,255,0.07);
+          border: 1px solid rgba(255,255,255,0.07);
+          pointer-events: all; flex: 1; max-width: 340px;
+        }
+
+        .nav-btn {
+          display: flex; flex-direction: column; align-items: center;
+          justify-content: center; gap: 3px; padding: 8px 0;
+          border-radius: 32px; border: none; background: transparent;
+          cursor: pointer; transition: background 0.18s, transform 0.14s;
+          flex: 1; min-width: 0;
+        }
+        .nav-btn:active { transform: scale(0.93); }
+        .nav-btn.active { background: #2a2a3e; box-shadow: inset 0 1px 0 rgba(255,255,255,0.09); }
+        .nav-btn-icon {
+          font-size: 18px; line-height: 1;
+          color: rgba(255,255,255,0.28);
+          transition: color 0.18s, transform 0.18s;
+        }
+        .nav-btn.active .nav-btn-icon { color: #ffffff; transform: scale(1.08); }
+        .nav-btn-label {
+          font-size: 9px; font-weight: 500;
+          color: rgba(255,255,255,0.28);
+          transition: color 0.18s;
+          font-family: system-ui, -apple-system, sans-serif;
+        }
+        .nav-btn.active .nav-btn-label { color: #ffffff; font-weight: 700; }
+
+        /* ── plus button ── */
+        .nav-plus {
+          width: 52px; height: 52px; border-radius: 50%; border: none;
+          background: ${isOverlayPageActive
+            ? "linear-gradient(135deg, #6366f1, #8b5cf6)"
+            : "#2a2a3e"};
+          box-shadow: 0 4px 20px rgba(0,0,0,0.5),
+                      inset 0 1px 0 rgba(255,255,255,0.1);
+          border: 1px solid ${isOverlayPageActive
+            ? "rgba(99,102,241,0.5)"
+            : "rgba(255,255,255,0.1)"};
+          display: flex; align-items: center; justify-content: center;
+          cursor: pointer; pointer-events: all; flex-shrink: 0;
+          transition: transform 0.22s cubic-bezier(.34,1.56,.64,1),
+                      background 0.2s, box-shadow 0.2s;
+        }
+        .nav-plus:active { transform: scale(0.9); }
+        .nav-plus.open {
+          transform: rotate(45deg);
+          background: linear-gradient(135deg, #6366f1, #8b5cf6);
+          border-color: rgba(99,102,241,0.5);
+          box-shadow: 0 4px 24px rgba(99,102,241,0.4);
+        }
+        .nav-plus-icon {
+          font-size: 22px; font-weight: 300; line-height: 1;
+          color: rgba(255,255,255,0.7);
+          transition: color 0.2s;
+          font-family: system-ui, -apple-system, sans-serif;
+          margin-top: -1px;
+        }
+        .nav-plus.open .nav-plus-icon { color: #ffffff; }
+
+        /* ── overlay backdrop ── */
+        .overlay-backdrop {
+          position: fixed; inset: 0; z-index: 9998;
+          background: rgba(0,0,0,0); pointer-events: none;
+          transition: background 0.25s;
+        }
+        .overlay-backdrop.open {
+          background: rgba(0,0,0,0.55); pointer-events: all;
+          backdrop-filter: blur(4px);
+        }
+
+        /* ── overlay card ── */
+        .overlay-card {
+          position: fixed; bottom: 110px; right: 16px; z-index: 9999;
+          background: #1c1c2a;
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 20px;
+          box-shadow: 0 16px 48px rgba(0,0,0,0.6),
+                      inset 0 1px 0 rgba(255,255,255,0.08);
+          padding: 8px;
+          min-width: 200px;
+          pointer-events: all;
+          transform-origin: bottom right;
+          transform: scale(0.85) translateY(12px);
+          opacity: 0;
+          transition: transform 0.28s cubic-bezier(.34,1.56,.64,1),
+                      opacity 0.22s ease;
+        }
+        .overlay-card.open {
+          transform: scale(1) translateY(0);
+          opacity: 1;
+        }
+
+        .overlay-item {
+          display: flex; align-items: center; gap: 14px;
+          padding: 13px 14px; border-radius: 14px; cursor: pointer;
+          border: none; background: transparent; width: 100%; text-align: left;
+          transition: background 0.15s;
+        }
+        .overlay-item:hover, .overlay-item:active {
+          background: rgba(255,255,255,0.07);
+        }
+        .overlay-item.active-page {
+          background: rgba(99,102,241,0.18);
+        }
+        .overlay-item-icon {
+          width: 36px; height: 36px; border-radius: 10px;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 17px; flex-shrink: 0;
+          background: rgba(255,255,255,0.07);
+          border: 1px solid rgba(255,255,255,0.1);
+        }
+        .overlay-item.active-page .overlay-item-icon {
+          background: rgba(99,102,241,0.25);
+          border-color: rgba(99,102,241,0.4);
+        }
+        .overlay-item-text {}
+        .overlay-item-label {
+          font-size: 14px; font-weight: 600;
+          color: rgba(255,255,255,0.9);
+          font-family: system-ui, -apple-system, sans-serif;
+          display: block; margin-bottom: 2px;
+        }
+        .overlay-item-desc {
+          font-size: 11px; color: rgba(255,255,255,0.4);
+          font-family: system-ui, -apple-system, sans-serif;
+          display: block;
+        }
+
+        /* ── home indicator ── */
+        .home-indicator {
+          position: fixed; bottom: 8px; left: 50%; transform: translateX(-50%);
+          width: 120px; height: 4px; border-radius: 2px;
+          background: rgba(255,255,255,0.2); z-index: 10000; pointer-events: none;
+        }
       `}</style>
-      <div className="nav-pill-wrap">
+
+      {/* Backdrop */}
+      <div
+        className={`overlay-backdrop ${overlayOpen ? "open" : ""}`}
+        onClick={() => setOverlayOpen(false)}
+      />
+
+      {/* Overlay card */}
+      <div className={`overlay-card ${overlayOpen ? "open" : ""}`}>
+        {overlayItems.map(item => (
+          <button
+            key={item.key}
+            className={`overlay-item ${page === item.key ? "active-page" : ""}`}
+            onClick={() => handleOverlayPick(item.key)}
+          >
+            <div className="overlay-item-icon">{item.icon}</div>
+            <div className="overlay-item-text">
+              <span className="overlay-item-label">{item.label}</span>
+              <span className="overlay-item-desc">{item.desc}</span>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* Bottom bar */}
+      <div className="nav-wrap">
+        {/* Pill */}
         <div className="nav-pill">
-          {tabs.map(t => (
-            <button key={t.key} className={`nav-btn ${page === t.key ? "active" : ""}`} onClick={() => setPage(t.key)}>
+          {pillTabs.map(t => (
+            <button
+              key={t.key}
+              className={`nav-btn ${page === t.key ? "active" : ""}`}
+              onClick={() => { setPage(t.key); setOverlayOpen(false); }}
+            >
               <span className="nav-btn-icon">{t.icon}</span>
               <span className="nav-btn-label">{t.label}</span>
             </button>
           ))}
         </div>
+
+        {/* Plus button */}
+        <button
+          className={`nav-plus ${overlayOpen ? "open" : ""}`}
+          onClick={() => setOverlayOpen(o => !o)}
+        >
+          <span className="nav-plus-icon">+</span>
+        </button>
       </div>
+
       <div className="home-indicator" />
     </>
   );
 }
+
+
+// ── In your App return, update the page routing to include insights + sync:
+//
+//   {page === "home"     && <HomePage     ... />}
+//   {page === "mood"     && <MoodPage     ... />}
+//   {page === "journal"  && <JournalPage  ... />}
+//   {page === "food"     && <FoodPage     ... />}
+//   {page === "insights" && <InsightsPage ... />}
+//   {page === "sync"     && <SyncPage     />}        ← add when you build it
+//
+// No other changes needed in App.jsx.
 
 // ── Main App ─────────────────────────────────────────────────────────────────
 export default function App() {
