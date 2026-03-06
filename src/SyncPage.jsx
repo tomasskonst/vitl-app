@@ -492,6 +492,9 @@ export default function SyncPage() {
     await upsertAll(parsed, (label, count, error) => {
       setUploadLog((prev) => [...prev, { label, count, error }]);
     });
+    const syncTime = new Date().toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+    localStorage.setItem("garmin_last_sync", syncTime);
+    setLastSync(syncTime);
     setPhase("done");
   };
 
@@ -507,11 +510,7 @@ export default function SyncPage() {
     ? Object.values(parsed).reduce((s, arr) => s + (arr?.length || 0), 0)
     : 0;
 
-  const [lastSync, setLastSync] = useState(null);
-  useEffect(() => {
-    supabase.from("garmin_sleep").select("calendar_date").order("calendar_date", { ascending: false }).limit(1)
-      .then(({ data }) => { if (data?.[0]) setLastSync(data[0].calendar_date); });
-  }, [phase]);
+  const [lastSync, setLastSync] = useState(() => localStorage.getItem("garmin_last_sync") || null);
 
   return (
     <div style={styles.page}>
