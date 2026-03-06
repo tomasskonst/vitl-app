@@ -1799,7 +1799,7 @@ function InsightsPage({ moodLogs, journalLogs, foodLogs, wolLogs, weatherLogs })
 // valid pages (they're opened via the overlay, not the pill).
 
 function BottomNav({ page, setPage }) {
-  const [overlayOpen, setOverlayOpen] = React.useState(false);
+  const [overlayOpen, setOverlayOpen] = useState(false);
 
   const pillTabs = [
     { key: "home",    icon: "⌂",  label: "Home"    },
