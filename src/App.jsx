@@ -2069,11 +2069,11 @@ export default function App() {
       minHeight: "100vh", background: "#0d0d18", color: "#f0f0f8",
       fontFamily: "system-ui,-apple-system,sans-serif",
       width: "100%", maxWidth: "100%",
-      overflowY: "auto", msOverflowStyle: "none", scrollbarWidth: "none",
+      overflowY: "auto", msOverflowStyle: "none", scrollbarWidth: "none", WebkitOverflowScrolling: "touch",
     }}>
       <style>{`
         * { box-sizing:border-box; }
-        html,body { scrollbar-width:none; -ms-overflow-style:none; overflow-y:scroll; }
+        html,body { scrollbar-width:none; -ms-overflow-style:none; overflow-y:scroll; -webkit-overflow-scrolling: touch; }
         html::-webkit-scrollbar,body::-webkit-scrollbar,*::-webkit-scrollbar { display:none; width:0; height:0; }
         ::placeholder { color:rgba(255,255,255,0.35); }
         textarea { font-family:inherit; }
