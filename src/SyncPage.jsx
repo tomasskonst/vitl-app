@@ -651,7 +651,7 @@ const styles = {
   page: {
     minHeight: "100vh",
     background: "transparent",
-    padding: "24px 20px 120px",
+    padding: "calc(env(safe-area-inset-top) + 48px) 20px 120px",
     color: "#f1f5f9",
     fontFamily: "'Inter', sans-serif",
   },
