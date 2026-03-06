@@ -1867,7 +1867,7 @@ function BottomNav({ page, setPage }) {
 
         /* ── plus button ── */
         .nav-plus {
-          width: 52px; height: 52px; border-radius: 50%; border: none;
+          width: 56px; height: 56px; border-radius: 50%; border: none;
           background: ${isOverlayPageActive
             ? "linear-gradient(135deg, #6366f1, #8b5cf6)"
             : "#2a2a3e"};
