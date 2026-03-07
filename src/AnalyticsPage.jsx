@@ -654,7 +654,7 @@ export default function AnalyticsPage() {
 
       if ((latest.total_training_load || 0) > 120) { riskScore += 20; riskFactors.push({ label: "Heavy training load", weight: 20, color: "#fb923c" }); }
 
-      if ((latest.hrv_weekly_avg || 50) < (a.avgHRV30 ? Number(a.avgHRV30) * 0.85 : 40)) {
+      if ((latest.hrv_weekly_avg || 50) < (avgHRV30 ? Number(avgHRV30) * 0.85 : 40)) {
         riskScore += 15; riskFactors.push({ label: "HRV below baseline", weight: 15, color: "#f87171" });
       }
 
