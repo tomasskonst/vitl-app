@@ -740,7 +740,7 @@ export default function AnalyticsPage() {
       rollingSleeReadiness, rollingStressSleep, rollingHrvReadiness,
       sleepThresholds, stressThresholds, loadThresholds,
       recoveryCurve, hardDayIndices,
-      compoundBadDays, avgCompoundBadReadiness, avgNormalReadiness,
+      compoundBadDays, avgCompoundBadReadiness, avgNormalReadiness, normalDays,
       multiLag, lagSleepReadiness, lagStressReadiness, lagLoadHrv, lagLoadReadiness,
       fatiguePeriods,
       // very deep
