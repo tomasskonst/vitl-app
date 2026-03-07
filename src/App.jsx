@@ -765,37 +765,7 @@ function BlueSlider({ value, onChange, min = 0, max = 16, step = 0.01, color = "
     </div>
   );
 }
-<input type="range" min={min} max={max} step={step} value={value} className={cls}
-        onChange={(e) => onChange(parseFloat(e.target.value))}
-        style={{ touchAction: "none" }} />
-    </div>
-  );
-}                          ← end of BlueSlider — paste AFTER this line
 
-function ToggleBtn({ value, onToggle, labelYes = "Yes ✓", labelNo = "No" }) {
-  return (
-    <button onClick={onToggle} style={{
-      background: value ? "rgba(99,102,241,0.35)" : "rgba(255,255,255,0.07)",
-      border: `1px solid ${value ? "rgba(99,102,241,0.6)" : "rgba(255,255,255,0.13)"}`,
-      borderRadius: 20, padding: "7px 18px", cursor: "pointer",
-      color: value ? "#a5b4fc" : "rgba(255,255,255,0.4)",
-      fontSize: 13, fontWeight: 700, transition: "all 0.22s",
-      whiteSpace: "nowrap",
-    }}>
-      {value ? labelYes : labelNo}
-    </button>
-  );
-}
-
-function Card({ children, style = {} }) {
-  return (
-    <div style={{
-      background: "rgba(255,255,255,0.07)", borderRadius: 16,
-      border: "1px solid rgba(255,255,255,0.13)",
-      padding: "14px 16px", marginBottom: 10, ...style,
-    }}>{children}</div>
-  );
-}
 
 
 function JournalPage({ journalLogs, setJournalLogs }) {
