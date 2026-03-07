@@ -766,7 +766,30 @@ function BlueSlider({ value, onChange, min = 0, max = 16, step = 0.01, color = "
   );
 }
 
+function ToggleBtn({ value, onToggle, labelYes = "Yes ✓", labelNo = "No" }) {
+  return (
+    <button onClick={onToggle} style={{
+      background: value ? "rgba(99,102,241,0.35)" : "rgba(255,255,255,0.07)",
+      border: `1px solid ${value ? "rgba(99,102,241,0.6)" : "rgba(255,255,255,0.13)"}`,
+      borderRadius: 20, padding: "7px 18px", cursor: "pointer",
+      color: value ? "#a5b4fc" : "rgba(255,255,255,0.4)",
+      fontSize: 13, fontWeight: 700, transition: "all 0.22s",
+      whiteSpace: "nowrap",
+    }}>
+      {value ? labelYes : labelNo}
+    </button>
+  );
+}
 
+function Card({ children, style = {} }) {
+  return (
+    <div style={{
+      background: "rgba(255,255,255,0.07)", borderRadius: 16,
+      border: "1px solid rgba(255,255,255,0.13)",
+      padding: "14px 16px", marginBottom: 10, ...style,
+    }}>{children}</div>
+  );
+}
 
 function JournalPage({ journalLogs, setJournalLogs }) {
   const [tab, setTab] = useState("checkin");
@@ -805,9 +828,9 @@ function JournalPage({ journalLogs, setJournalLogs }) {
   const [sharedBed,       setSharedBed]       = useState(todayLog?.shared_bed        ?? false);
   const [funnyBusiness,   setFunnyBusiness]   = useState(todayLog?.funny_business    ?? false);
 
-  const workColor     = workHours  <= 8   ? "#60a5fa" : workHours  <= 10 ? "#facc15" : "#f87171";
-  const caffeineColor = caffeineCups <= 2 ? "#60a5fa" : caffeineCups <= 4 ? "#facc15" : "#f87171";
-  const screenColor   = screenBed  <= 20  ? "#60a5fa" : screenBed  <= 60 ? "#facc15" : "#f87171";
+  const workColor     = workHours    <= 8 ? "#60a5fa" : workHours    <= 10 ? "#facc15" : "#f87171";
+  const caffeineColor = caffeineCups <= 2 ? "#60a5fa" : caffeineCups <= 4  ? "#facc15" : "#f87171";
+  const screenColor   = screenBed   <= 20 ? "#60a5fa" : screenBed   <= 60  ? "#facc15" : "#f87171";
   const alcoholColor  = alcoholAmount === 0 ? "#60a5fa" : alcoholAmount <= 3 ? "#facc15" : "#f87171";
 
   const formatHour = (h) => {
@@ -816,7 +839,6 @@ function JournalPage({ journalLogs, setJournalLogs }) {
     const display = hNorm % 12 === 0 ? 12 : hNorm % 12;
     return `${display}${period}`;
   };
-
 
   const saveEntry = async () => {
     if (isLocked) return;
@@ -843,7 +865,7 @@ function JournalPage({ journalLogs, setJournalLogs }) {
       funny_business:    funnyBusiness,
     };
     await saveJournalLog(log);
-    setJournalLogs(prev => [log, ...prev.filter(l => l.date !== today())]);
+    setJournalLogs(prev => [log, ...prev.filter(l => l.date !== effectiveDate)]);
     setSaved(true);
   };
 
@@ -862,54 +884,48 @@ function JournalPage({ journalLogs, setJournalLogs }) {
           </div>
         </div>
 
-        <div style={{
-          display: "flex", gap: 0, background: "rgba(255,255,255,0.07)",
-          borderRadius: 12, margin: "0 20px 20px", border: "1px solid rgba(255,255,255,0.12)",
-        }}>
+        <div style={{ display: "flex", gap: 0, background: "rgba(255,255,255,0.07)", borderRadius: 12, margin: "0 20px 20px", border: "1px solid rgba(255,255,255,0.12)" }}>
           {[{ key: "checkin", label: "Today" }, { key: "history", label: "History" }].map(t => (
             <button key={t.key} onClick={() => setTab(t.key)} style={{
               flex: 1, padding: "10px", border: "none", borderRadius: 10,
               background: tab === t.key ? "rgba(99,102,241,0.3)" : "transparent",
               color: tab === t.key ? "#a5b4fc" : "rgba(255,255,255,0.4)",
               fontSize: 13, fontWeight: tab === t.key ? 600 : 400, cursor: "pointer", transition: "all 0.2s",
-            }}>
-              {t.label}
-            </button>
+            }}>{t.label}</button>
           ))}
         </div>
 
         {tab === "checkin" && (
           <div style={{ padding: "0 20px 40px" }}>
             {isLocked && (
-              <div style={{
-                background: "rgba(74,222,128,0.1)", borderRadius: 12, padding: "12px 16px",
-                marginBottom: 14, border: "1px solid rgba(74,222,128,0.3)",
-                display: "flex", justifyContent: "space-between", alignItems: "center",
-              }}>
+              <div style={{ background: "rgba(74,222,128,0.1)", borderRadius: 12, padding: "12px 16px", marginBottom: 14, border: "1px solid rgba(74,222,128,0.3)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div style={{ fontSize: 13, color: "#4ade80", fontWeight: 700 }}>✓  Today's entry is saved</div>
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Unlocks {nextUnlockStr()}</div>
               </div>
             )}
 
             <div style={{ opacity: isLocked ? 0.45 : 1, pointerEvents: isLocked ? "none" : "auto", transition: "opacity 0.3s" }}>
-
               <Card>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
                   <span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>💼  Work hours</span>
-                  <span style={{ fontSize: 22, fontWeight: 700, color: workColor }}>
-                    {workHours}<span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginLeft: 2 }}>h</span>
-                  </span>
+                  <span style={{ fontSize: 22, fontWeight: 700, color: workColor }}>{workHours}<span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginLeft: 2 }}>h</span></span>
                 </div>
                 <BlueSlider value={workHours} min={0} max={16} step={0.5} color={workColor} sliderKey="work" onChange={setWorkHours} />
+              </Card>
+
+              <Card>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
+                  <span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>😴  Sleep hours</span>
+                  <span style={{ fontSize: 22, fontWeight: 700, color: sleepHours >= 7.5 ? "#4ade80" : sleepHours >= 6 ? "#facc15" : "#f87171" }}>{sleepHours}<span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginLeft: 2 }}>h</span></span>
+                </div>
+                <BlueSlider value={sleepHours} min={0} max={12} step={0.5} color={sleepHours >= 7.5 ? "#4ade80" : sleepHours >= 6 ? "#facc15" : "#f87171"} sliderKey="sleep" onChange={setSleepHours} />
               </Card>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
                 <Card style={{ marginBottom: 0 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
                     <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>☕ Caffeine</span>
-                    <span style={{ fontSize: 20, fontWeight: 700, color: caffeineColor }}>
-                      {caffeineCups}<span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginLeft: 2 }}>cups</span>
-                    </span>
+                    <span style={{ fontSize: 20, fontWeight: 700, color: caffeineColor }}>{caffeineCups}<span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginLeft: 2 }}>cups</span></span>
                   </div>
                   <BlueSlider value={caffeineCups} min={0} max={7} step={1} color={caffeineColor} sliderKey="caff" onChange={setCaffeineCups} />
                 </Card>
@@ -939,9 +955,7 @@ function JournalPage({ journalLogs, setJournalLogs }) {
               <Card>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
                   <span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>📱  Screentime before bed</span>
-                  <span style={{ fontSize: 22, fontWeight: 700, color: screenColor }}>
-                    {screenBed}<span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginLeft: 2 }}>min</span>
-                  </span>
+                  <span style={{ fontSize: 22, fontWeight: 700, color: screenColor }}>{screenBed}<span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginLeft: 2 }}>min</span></span>
                 </div>
                 <BlueSlider value={screenBed} min={0} max={120} step={5} color={screenColor} sliderKey="screen" onChange={setScreenBed} />
               </Card>
@@ -1006,14 +1020,7 @@ function JournalPage({ journalLogs, setJournalLogs }) {
 
               <style>{`.j-notes::placeholder { color: rgba(255,255,255,0.3) !important; }`}</style>
               <textarea className="j-notes" placeholder="Any notes for today…" value={notes} onChange={e => setNotes(e.target.value)}
-                style={{
-                  width: "100%", minHeight: 90, background: "rgba(255,255,255,0.07)",
-                  border: "1px solid rgba(255,255,255,0.13)", borderRadius: 12,
-                  padding: "12px 14px", color: "#fff", fontSize: 13, resize: "none",
-                  outline: "none", boxSizing: "border-box", fontFamily: "inherit",
-                  marginBottom: 14, lineHeight: 1.6,
-                }} />
-
+                style={{ width: "100%", minHeight: 90, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.13)", borderRadius: 12, padding: "12px 14px", color: "#fff", fontSize: 13, resize: "none", outline: "none", boxSizing: "border-box", fontFamily: "inherit", marginBottom: 14, lineHeight: 1.6 }} />
             </div>
 
             {isLocked ? (
@@ -1023,11 +1030,7 @@ function JournalPage({ journalLogs, setJournalLogs }) {
             ) : saved ? (
               <div style={{ textAlign: "center", padding: "14px", borderRadius: 12, background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)", color: "#4ade80", fontSize: 14, fontWeight: 600 }}>✓  Saved</div>
             ) : (
-              <button onClick={saveEntry} style={{
-                width: "100%", padding: "14px", borderRadius: 12, border: "none",
-                background: "linear-gradient(135deg,#6366f1,#8b5cf6)",
-                color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer",
-              }}>Save Entry</button>
+              <button onClick={saveEntry} style={{ width: "100%", padding: "14px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer" }}>Save Entry</button>
             )}
           </div>
         )}
@@ -1040,10 +1043,7 @@ function JournalPage({ journalLogs, setJournalLogs }) {
                 <div style={{ fontSize: 16, color: "rgba(255,255,255,0.4)" }}>No journal entries yet.</div>
               </div>
             ) : sortedLogs.map(log => (
-              <div key={log.id} style={{
-                background: "rgba(255,255,255,0.07)", borderRadius: 16,
-                border: "1px solid rgba(255,255,255,0.13)", padding: "16px 18px", marginBottom: 10,
-              }}>
+              <div key={log.id} style={{ background: "rgba(255,255,255,0.07)", borderRadius: 16, border: "1px solid rgba(255,255,255,0.13)", padding: "16px 18px", marginBottom: 10 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                   <div style={{ fontSize: 16, fontWeight: 700, color: "#f0f0f8" }}>{fmt(log.date)}</div>
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{log.time}</div>
@@ -1062,9 +1062,9 @@ function JournalPage({ journalLogs, setJournalLogs }) {
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 8 }}>
                   {[
-                    { label: "Caffeine", value: log.caffeine_cups != null ? `${log.caffeine_cups}c` : "—",  color: "#60a5fa" },
-                    { label: "Screen",   value: log.screen_bed   != null ? `${log.screen_bed}m`   : "—",  color: (log.screen_bed ?? 0) <= 20 ? "#60a5fa" : "#facc15" },
-                    { label: "Alcohol",  value: log.alcohol_amount != null ? `${log.alcohol_amount}` : "—", color: (log.alcohol_amount ?? 0) === 0 ? "#60a5fa" : "#facc15" },
+                    { label: "Caffeine", value: log.caffeine_cups   != null ? `${log.caffeine_cups}c`   : "—", color: "#60a5fa" },
+                    { label: "Screen",   value: log.screen_bed      != null ? `${log.screen_bed}m`      : "—", color: (log.screen_bed ?? 0) <= 20 ? "#60a5fa" : "#facc15" },
+                    { label: "Alcohol",  value: log.alcohol_amount  != null ? `${log.alcohol_amount}`   : "—", color: (log.alcohol_amount ?? 0) === 0 ? "#60a5fa" : "#facc15" },
                   ].map(item => (
                     <div key={item.label} style={{ background: "rgba(255,255,255,0.05)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", padding: "10px 8px", textAlign: "center" }}>
                       <div style={{ fontSize: 14, fontWeight: 700, color: item.color, marginBottom: 3 }}>{item.value}</div>
@@ -1088,7 +1088,7 @@ function JournalPage({ journalLogs, setJournalLogs }) {
                   ))}
                 </div>
                 {log.notes ? (
-                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontStyle: "italic", lineHeight: 1.6, borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: 10, marginTop: log.notes ? 4 : 0 }}>
+                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontStyle: "italic", lineHeight: 1.6, borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: 10, marginTop: 4 }}>
                     "{log.notes}"
                   </div>
                 ) : (
