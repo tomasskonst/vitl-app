@@ -748,6 +748,24 @@ function MoodPage({ moodLogs, setMoodLogs, wolLogs, setWolLogs }) {
 }
 
 // ── Journal Page ─────────────────────────────────────────────────────────────
+function BlueSlider({ value, onChange, min = 0, max = 16, step = 0.01, color = "#60a5fa", sliderKey = "s" }) {
+  const pct = ((value - min) / (max - min)) * 100;
+  const cls = `bslider-${sliderKey}`;
+  return (
+    <div style={{ position: "relative", padding: "10px 0" }}>
+      <style>{`
+        .${cls} { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; border-radius: 4px; outline: none; cursor: pointer; touch-action: none; background: linear-gradient(to right, ${color} ${pct}%, rgba(255,255,255,0.1) ${pct}%); }
+        .${cls}::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 26px; height: 26px; border-radius: 50%; background: ${color}; border: 2px solid #1a1a2e; box-shadow: 0 0 8px ${color}88; cursor: grab; }
+        .${cls}::-webkit-slider-thumb:active { cursor: grabbing; }
+        .${cls}::-moz-range-thumb { width: 26px; height: 26px; border-radius: 50%; background: ${color}; border: 2px solid #1a1a2e; box-shadow: 0 0 8px ${color}88; cursor: grab; }
+      `}</style>
+      <input type="range" min={min} max={max} step={step} value={value} className={cls}
+        onChange={(e) => onChange(parseFloat(e.target.value))}
+        style={{ touchAction: "none" }} />
+    </div>
+  );
+}
+
 function JournalPage({ journalLogs, setJournalLogs }) {
   const [tab, setTab] = useState("checkin");
 
@@ -810,21 +828,6 @@ function JournalPage({ journalLogs, setJournalLogs }) {
     </button>
   );
 
-  const BlueSlider = ({ value, onChange, min = 0, max = 16, step = 0.01, color = "#60a5fa", sliderKey = "s" }) => {
-    const pct = ((value - min) / (max - min)) * 100;
-    const cls = `bslider-${sliderKey}`;
-    return (
-      <div style={{ position: "relative", padding: "10px 0" }}>
-        <style>{`
-          .${cls} { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; border-radius: 4px; outline: none; cursor: pointer; touch-action: none; background: linear-gradient(to right, ${color} ${pct}%, rgba(255,255,255,0.1) ${pct}%); }
-          .${cls}::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 26px; height: 26px; border-radius: 50%; background: ${color}; border: 2px solid #1a1a2e; box-shadow: 0 0 8px ${color}88; cursor: grab; }
-          .${cls}::-webkit-slider-thumb:active { cursor: grabbing; }
-          .${cls}::-moz-range-thumb { width: 26px; height: 26px; border-radius: 50%; background: ${color}; border: 2px solid #1a1a2e; box-shadow: 0 0 8px ${color}88; cursor: grab; }
-        `}</style>
-        <input type="range" min={min} max={max} step={step} value={value} className={cls} onChange={(e) => onChange(parseFloat(e.target.value))} style={{ touchAction: "none" }} />
-      </div>
-    );
-  };
 
   const Card = ({ children, style = {} }) => (
     <div style={{
