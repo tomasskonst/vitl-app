@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "./supabase";
 import SyncPage from "./SyncPage";
-import AnalyticsPage from "./AnalyticsPage"; // ← add this
+import AnalyticsPage from "./AnalyticsPage";
 
 const API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY || "";
 
