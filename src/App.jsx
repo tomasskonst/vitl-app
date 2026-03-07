@@ -101,7 +101,6 @@ const scoreBg = (v) => {
 
 // ── Weather helpers ──────────────────────────────────────────────────────────
 
-// WMO weather code → description + emoji
 const weatherCodeInfo = (code) => {
   if (code === 0)              return { label: "Clear",        emoji: "☀️"  };
   if (code <= 2)               return { label: "Partly cloudy",emoji: "⛅"  };
@@ -124,7 +123,6 @@ const uvLabel = (uv) => {
   return { label: "Extreme", color: "#c084fc" };
 };
 
-// Fetch weather from Open-Meteo (free, no key needed)
 const fetchWeatherData = async (lat, lon) => {
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
     `&current=temperature_2m,apparent_temperature,cloud_cover,uv_index,weather_code,wind_speed_10m,relative_humidity_2m` +
@@ -146,7 +144,6 @@ const fetchWeatherData = async (lat, lon) => {
   };
 };
 
-// Get user's geolocation as a Promise
 const getLocation = () =>
   new Promise((resolve, reject) =>
     navigator.geolocation.getCurrentPosition(
@@ -201,7 +198,6 @@ const saveJournalLog = async (log) => {
     date:              log.date,
     time:              log.time,
     work_hours:        log.work_hours,
-    sleep_hours:       log.sleep_hours,
     social:            log.social,
     notes:             log.notes,
     caffeine_cups:     log.caffeine_cups,
@@ -300,26 +296,21 @@ const saveWeatherLog = async (log) => {
   if (error) console.error("Error saving weather log:", error);
 };
 
-// Auto-track weather for the current period (runs silently on app load)
 const autoTrackWeather = async (existingWeatherLogs, setWeatherLogs) => {
   try {
     const period = getCurrentPeriod();
     const dateStr = today();
 
-    // Check if we already have a log for this period today
     const alreadyLogged = existingWeatherLogs.some(
       (l) => l.date === dateStr && l.period === period
     );
     if (alreadyLogged) return;
 
-    // Get location
     const { lat, lon } = await getLocation();
-
-    // Fetch weather
     const weatherData = await fetchWeatherData(lat, lon);
 
     const log = {
-      id:      `${dateStr}-${period}`,   // stable dedup key
+      id:      `${dateStr}-${period}`,
       date:    dateStr,
       time:    new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
       period,
@@ -329,7 +320,6 @@ const autoTrackWeather = async (existingWeatherLogs, setWeatherLogs) => {
     await saveWeatherLog(log);
     setWeatherLogs((prev) => [log, ...prev.filter((l) => l.id !== log.id)]);
   } catch (e) {
-    // Silently fail — weather tracking is background/optional
     console.warn("Weather auto-track skipped:", e.message);
   }
 };
@@ -442,14 +432,12 @@ function HomePage({ moodLogs, journalLogs, foodLogs, wolLogs, weatherLogs, setPa
 
   const fitnessScore = latestMood
     ? ((latestMood.energy || 5) * 10).toFixed(2) : "—";
-  const sleepScore = latestJournal
-    ? Math.min(100, ((latestJournal.sleep_hours || 7) / 9 * 100)).toFixed(2) : "—";
   const nutritionScore = foodLogs.length
     ? (foodLogs.slice(0, 7).reduce((a, b) => a + (b.quality_score || 5), 0) / Math.min(7, foodLogs.length) * 10).toFixed(2) : "—";
   const socialScore = latestJournal
-    ? (latestJournal.social ? 85 : 55).toFixed(2) : "—";
+    ? ((latestJournal.social || 1) * 10).toFixed(2) : "—";
 
-  const validScores = [fitnessScore, sleepScore, nutritionScore, socialScore].filter(s => s !== "—").map(parseFloat);
+  const validScores = [fitnessScore, nutritionScore, socialScore].filter(s => s !== "—").map(parseFloat);
   const overallScore = validScores.length >= 2
     ? (validScores.reduce((a, b) => a + b, 0) / validScores.length).toFixed(2) : null;
 
@@ -500,7 +488,6 @@ function HomePage({ moodLogs, journalLogs, foodLogs, wolLogs, weatherLogs, setPa
           </div>
         </div>
 
-        {/* Weather widget — shown automatically once we have data */}
         <WeatherWidget weatherLogs={weatherLogs} />
 
         <div style={{
@@ -517,10 +504,9 @@ function HomePage({ moodLogs, journalLogs, foodLogs, wolLogs, weatherLogs, setPa
           )}
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 10, marginBottom: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 16 }}>
           {[
             { label: "Fitness score",   value: fitnessScore,   color: "#60a5fa" },
-            { label: "Sleep score",     value: sleepScore,     color: "#a78bfa" },
             { label: "Nutrition score", value: nutritionScore, color: "#34d399" },
             { label: "Social score",    value: socialScore,    color: "#f472b6" },
           ].map(s => (
@@ -810,8 +796,12 @@ function JournalPage({ journalLogs, setJournalLogs }) {
   };
 
   const [workHours,       setWorkHours]       = useState(todayLog?.work_hours        ?? 8);
-  const [sleepHours,      setSleepHours]      = useState(todayLog?.sleep_hours       ?? 7.5);
-  const [social,          setSocial]          = useState(todayLog?.social            ?? false);
+  // social is now a 1–10 number (previously boolean)
+  const [social,          setSocial]          = useState(() => {
+    const raw = todayLog?.social;
+    if (typeof raw === "boolean") return raw ? 5 : 1;
+    return raw ?? 1;
+  });
   const [notes,           setNotes]           = useState(todayLog?.notes             ?? "");
   const [saved,           setSaved]           = useState(false);
   const [caffeineCups,    setCaffeineCups]    = useState(todayLog?.caffeine_cups     ?? 0);
@@ -832,6 +822,7 @@ function JournalPage({ journalLogs, setJournalLogs }) {
   const caffeineColor = caffeineCups <= 2 ? "#60a5fa" : caffeineCups <= 4  ? "#facc15" : "#f87171";
   const screenColor   = screenBed   <= 20 ? "#60a5fa" : screenBed   <= 60  ? "#facc15" : "#f87171";
   const alcoholColor  = alcoholAmount === 0 ? "#60a5fa" : alcoholAmount <= 3 ? "#facc15" : "#f87171";
+  const socialColor   = scoreColor(social);
 
   const formatHour = (h) => {
     const hNorm = ((h % 24) + 24) % 24;
@@ -847,7 +838,6 @@ function JournalPage({ journalLogs, setJournalLogs }) {
       date:              effectiveDate,
       time:              new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
       work_hours:        workHours,
-      sleep_hours:       sleepHours,
       social,
       notes,
       caffeine_cups:     caffeineCups,
@@ -913,12 +903,16 @@ function JournalPage({ journalLogs, setJournalLogs }) {
                 <BlueSlider value={workHours} min={0} max={16} step={0.5} color={workColor} sliderKey="work" onChange={setWorkHours} />
               </Card>
 
+              {/* Social activity – 1–10 slider */}
               <Card>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
-                  <span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>😴  Sleep hours</span>
-                  <span style={{ fontSize: 22, fontWeight: 700, color: sleepHours >= 7.5 ? "#4ade80" : sleepHours >= 6 ? "#facc15" : "#f87171" }}>{sleepHours}<span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginLeft: 2 }}>h</span></span>
+                  <span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>🤝  Social activity</span>
+                  <span style={{ fontSize: 22, fontWeight: 700, color: socialColor }}>{social}<span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginLeft: 3 }}>/10</span></span>
                 </div>
-                <BlueSlider value={sleepHours} min={0} max={12} step={0.5} color={sleepHours >= 7.5 ? "#4ade80" : sleepHours >= 6 ? "#facc15" : "#f87171"} sliderKey="sleep" onChange={setSleepHours} />
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: 2 }}>
+                  {social <= 2 ? "Solo day" : social <= 4 ? "Minimal contact" : social <= 6 ? "Some socialising" : social <= 8 ? "Good social time" : "Very social day"}
+                </div>
+                <BlueSlider value={social} min={1} max={10} step={1} color={socialColor} sliderKey="social" onChange={setSocial} />
               </Card>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
@@ -988,14 +982,6 @@ function JournalPage({ journalLogs, setJournalLogs }) {
                 </Card>
               </div>
 
-              <Card style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <div style={{ fontSize: 14, color: "rgba(255,255,255,0.8)", fontWeight: 600, marginBottom: 3 }}>🤝  Social activity</div>
-                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)" }}>Time spent with others today?</div>
-                </div>
-                <ToggleBtn value={social} onToggle={() => setSocial(!social)} />
-              </Card>
-
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
                 <Card style={{ marginBottom: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                   <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", fontWeight: 500, marginBottom: 10 }}>🤒 Illness</div>
@@ -1051,8 +1037,8 @@ function JournalPage({ journalLogs, setJournalLogs }) {
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 8 }}>
                   {[
                     { label: "Work",   value: `${log.work_hours ?? "—"}h`,   color: (log.work_hours ?? 8) <= 8 ? "#60a5fa" : "#facc15" },
-                    { label: "Sleep",  value: `${log.sleep_hours ?? "—"}h`,  color: (log.sleep_hours ?? 0) >= 7.5 ? "#4ade80" : "#f87171" },
-                    { label: "Social", value: log.social ? "Yes ✓" : "Solo", color: log.social ? "#4ade80" : "rgba(255,255,255,0.4)" },
+                    { label: "Social", value: typeof log.social === "boolean" ? (log.social ? "Yes ✓" : "Solo") : (log.social != null ? `${log.social}/10` : "—"), color: typeof log.social === "boolean" ? (log.social ? "#4ade80" : "rgba(255,255,255,0.4)") : scoreColor(log.social ?? 1) },
+                    { label: "Screen", value: log.screen_bed != null ? `${log.screen_bed}m` : "—", color: (log.screen_bed ?? 0) <= 20 ? "#60a5fa" : "#facc15" },
                   ].map(item => (
                     <div key={item.label} style={{ background: "rgba(255,255,255,0.05)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", padding: "10px 8px", textAlign: "center" }}>
                       <div style={{ fontSize: 14, fontWeight: 700, color: item.color, marginBottom: 3 }}>{item.value}</div>
@@ -1063,7 +1049,7 @@ function JournalPage({ journalLogs, setJournalLogs }) {
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 8 }}>
                   {[
                     { label: "Caffeine", value: log.caffeine_cups   != null ? `${log.caffeine_cups}c`   : "—", color: "#60a5fa" },
-                    { label: "Screen",   value: log.screen_bed      != null ? `${log.screen_bed}m`      : "—", color: (log.screen_bed ?? 0) <= 20 ? "#60a5fa" : "#facc15" },
+                    { label: "Work h",   value: log.work_hours      != null ? `${log.work_hours}h`      : "—", color: (log.work_hours ?? 8) <= 8 ? "#60a5fa" : "#facc15" },
                     { label: "Alcohol",  value: log.alcohol_amount  != null ? `${log.alcohol_amount}`   : "—", color: (log.alcohol_amount ?? 0) === 0 ? "#60a5fa" : "#facc15" },
                   ].map(item => (
                     <div key={item.label} style={{ background: "rgba(255,255,255,0.05)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", padding: "10px 8px", textAlign: "center" }}>
@@ -1292,15 +1278,12 @@ function FoodPage({ foodLogs, setFoodLogs }) {
 
   const reset = () => { setImage(null); setImageData(null); setResult(null); setSavedFood(false); setError(null); setTextInput(""); };
 
-  // ── Selected log detail view (full page, same bg as other pages) ──
   if (selectedLog) {
     return (
       <div style={{ minHeight: "100vh", position: "relative" }}>
         <div style={{ position: "absolute", inset: 0, zIndex: 0, background: "linear-gradient(160deg, #0a0a1a 0%, #0d1b4d 25%, #0a2a6e 45%, #0d3a7a 60%, #061428 100%)" }} />
         <div style={{ position: "absolute", inset: 0, zIndex: 0, background: "radial-gradient(ellipse 60% 50% at 20% 40%, rgba(0,120,255,0.45) 0%, transparent 65%), radial-gradient(ellipse 50% 40% at 80% 60%, rgba(0,220,255,0.25) 0%, transparent 60%), radial-gradient(ellipse 70% 35% at 50% 80%, rgba(0,80,200,0.35) 0%, transparent 70%)", filter: "blur(18px)" }} />
         <div style={{ position: "relative", zIndex: 1, maxWidth: 480, margin: "0 auto", padding: "calc(env(safe-area-inset-top) + 24px) 20px 160px", overflowY: "auto" }}>
-
-          {/* Header */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
             <div style={{ flex: 1, marginRight: 12 }}>
               <div style={{ fontSize: 22, fontWeight: 700, color: "#f0f0f8", lineHeight: 1.2 }}>{selectedLog.meal_name}</div>
@@ -1309,12 +1292,10 @@ function FoodPage({ foodLogs, setFoodLogs }) {
             <button onClick={() => setSelectedLog(null)} style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.13)", borderRadius: 12, padding: "10px 16px", color: "rgba(255,255,255,0.6)", fontSize: 13, cursor: "pointer", fontWeight: 600, whiteSpace: "nowrap" }}>← Back</button>
           </div>
 
-          {/* Image */}
           {selectedLog.image && (
             <img src={selectedLog.image} alt="meal" style={{ width: "100%", borderRadius: 16, maxHeight: 260, objectFit: "cover", marginBottom: 16 }} />
           )}
 
-          {/* Quality + notes */}
           <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 20 }}>
             <div style={{ flex: 1 }}>
               {selectedLog.notes && (
@@ -1337,7 +1318,6 @@ function FoodPage({ foodLogs, setFoodLogs }) {
             )}
           </div>
 
-          {/* Macros */}
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Macros</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8, marginBottom: 20 }}>
             {[
@@ -1354,7 +1334,6 @@ function FoodPage({ foodLogs, setFoodLogs }) {
             ))}
           </div>
 
-          {/* Fats & Other */}
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Fats & Other</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 20 }}>
             {[
@@ -1372,7 +1351,6 @@ function FoodPage({ foodLogs, setFoodLogs }) {
             ))}
           </div>
 
-          {/* Minerals */}
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Minerals</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 20 }}>
             {[
@@ -1390,7 +1368,6 @@ function FoodPage({ foodLogs, setFoodLogs }) {
             ))}
           </div>
 
-          {/* Vitamins */}
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Vitamins</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 20 }}>
             {[
@@ -1410,7 +1387,6 @@ function FoodPage({ foodLogs, setFoodLogs }) {
             ))}
           </div>
 
-          {/* Ingredients */}
           {selectedLog.main_ingredients?.length > 0 && (
             <>
               <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Detected Ingredients</div>
@@ -1672,12 +1648,17 @@ function InsightsPage({ moodLogs, journalLogs, foodLogs, wolLogs, weatherLogs })
     ? (dailyMoods.reduce((a, b) => a + b.avgMood, 0) / dailyMoods.length).toFixed(1)
     : "—";
 
-  const socialDays    = journalLogs.filter(l => l.social);
-  const nonSocialDays = journalLogs.filter(l => !l.social);
+  // social is now numeric 1-10; treat >= 5 as "social day"
+  const socialDays    = journalLogs.filter(l => {
+    if (typeof l.social === "boolean") return l.social;
+    return (l.social ?? 1) >= 5;
+  });
+  const nonSocialDays = journalLogs.filter(l => {
+    if (typeof l.social === "boolean") return !l.social;
+    return (l.social ?? 1) < 5;
+  });
   const highWorkDays  = journalLogs.filter(l => l.work_hours > 9);
   const lowWorkDays   = journalLogs.filter(l => l.work_hours <= 8);
-  const goodSleepDays = journalLogs.filter(l => l.sleep_hours >= 7.5);
-  const poorSleepDays = journalLogs.filter(l => l.sleep_hours < 6.5);
 
   const avgMoodForDates = (dates) => {
     const moods = dates.flatMap(l => moodByDate[l.date] || []);
@@ -1711,15 +1692,6 @@ function InsightsPage({ moodLogs, journalLogs, foodLogs, wolLogs, weatherLogs })
     }
   }
 
-  if (goodSleepDays.length >= 2) {
-    const good = avgMoodForDates(goodSleepDays);
-    const poor = poorSleepDays.length >= 2 ? avgMoodForDates(poorSleepDays) : null;
-    if (good) {
-      insights.push({ icon: "🌙", title: "Sleep & Mood", color: "#a5b4fc",
-        finding: `7.5h+ sleep: mood ${good}${poor ? ` vs short sleep: ${poor}` : ""}. ${parseFloat(good) > 6.5 ? "Sleep is a clear mood booster for you." : "Other factors may be driving your mood more than sleep."}` });
-    }
-  }
-
   if (avgFoodQ) {
     insights.push({ icon: "🥗", title: "Food Quality", color: scoreColor(parseFloat(avgFoodQ)),
       finding: `Average food quality: ${avgFoodQ}/10 across ${foodLogs.length} meals. ${parseFloat(avgFoodQ) >= 7 ? "Strong foundation." : parseFloat(avgFoodQ) >= 5 ? "Room to improve — better food days likely lift energy and mood." : "Food quality is a key area to focus on."}` });
@@ -1732,7 +1704,6 @@ function InsightsPage({ moodLogs, journalLogs, foodLogs, wolLogs, weatherLogs })
       finding: `Latest WOL avg: ${wolAvg}/10. Lowest area: ${lowest.icon} ${lowest.label} (${latestWol[lowest.key]}). Focus here for biggest life satisfaction gains.` });
   }
 
-  // Weather-mood correlation insight
   if (weatherLogs.length >= 5 && moodLogs.length >= 5) {
     const sunnyDates = new Set(
       weatherLogs.filter(w => (w.weather_code ?? 99) <= 2).map(w => w.date)
@@ -1792,10 +1763,6 @@ function InsightsPage({ moodLogs, journalLogs, foodLogs, wolLogs, weatherLogs })
 }
 
 // ── Bottom Nav ───────────────────────────────────────────────────────────────
-// Replace your existing BottomNav function and the App return JSX with this.
-// Also update your App useState for page to include "insights" and "sync" as
-// valid pages (they're opened via the overlay, not the pill).
-
 function BottomNav({ page, setPage }) {
   const [overlayOpen, setOverlayOpen] = useState(false);
 
@@ -1816,20 +1783,16 @@ function BottomNav({ page, setPage }) {
     setPage(key);
   };
 
-  const isPillActive = pillTabs.some(t => t.key === page);
   const isOverlayPageActive = overlayItems.some(t => t.key === page);
 
   return (
     <>
       <style>{`
-        /* ── layout ── */
         .nav-wrap {
           position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999;
           display: flex; align-items: flex-end; justify-content: center;
           padding: 0 16px 28px; gap: 10px; pointer-events: none;
         }
-
-        /* ── pill ── */
         .nav-pill {
           display: flex; align-items: center;
           background: #1c1c2a;
@@ -1839,7 +1802,6 @@ function BottomNav({ page, setPage }) {
           border: 1px solid rgba(255,255,255,0.07);
           pointer-events: all; flex: 1; max-width: 340px;
         }
-
         .nav-btn {
           display: flex; flex-direction: column; align-items: center;
           justify-content: center; gap: 3px; padding: 8px 0;
@@ -1862,8 +1824,6 @@ function BottomNav({ page, setPage }) {
           font-family: system-ui, -apple-system, sans-serif;
         }
         .nav-btn.active .nav-btn-label { color: #ffffff; font-weight: 700; }
-
-        /* ── plus button ── */
         .nav-plus {
           width: 62px; height: 62px; border-radius: 50%; border: none;
           background: ${isOverlayPageActive
@@ -1894,8 +1854,6 @@ function BottomNav({ page, setPage }) {
           margin-top: -1px;
         }
         .nav-plus.open .nav-plus-icon { color: #ffffff; }
-
-        /* ── overlay backdrop ── */
         .overlay-backdrop {
           position: fixed; inset: 0; z-index: 9998;
           background: rgba(0,0,0,0); pointer-events: none;
@@ -1905,8 +1863,6 @@ function BottomNav({ page, setPage }) {
           background: rgba(0,0,0,0.55); pointer-events: all;
           backdrop-filter: blur(4px);
         }
-
-        /* ── overlay card ── */
         .overlay-card {
           position: fixed; bottom: 110px; right: 16px; z-index: 9999;
           background: #1c1c2a;
@@ -1927,19 +1883,14 @@ function BottomNav({ page, setPage }) {
           transform: scale(1) translateY(0);
           opacity: 1;
         }
-
         .overlay-item {
           display: flex; align-items: center; gap: 14px;
           padding: 13px 14px; border-radius: 14px; cursor: pointer;
           border: none; background: transparent; width: 100%; text-align: left;
           transition: background 0.15s;
         }
-        .overlay-item:hover, .overlay-item:active {
-          background: rgba(255,255,255,0.07);
-        }
-        .overlay-item.active-page {
-          background: rgba(99,102,241,0.18);
-        }
+        .overlay-item:hover, .overlay-item:active { background: rgba(255,255,255,0.07); }
+        .overlay-item.active-page { background: rgba(99,102,241,0.18); }
         .overlay-item-icon {
           width: 36px; height: 36px; border-radius: 10px;
           display: flex; align-items: center; justify-content: center;
@@ -1951,7 +1902,6 @@ function BottomNav({ page, setPage }) {
           background: rgba(99,102,241,0.25);
           border-color: rgba(99,102,241,0.4);
         }
-        .overlay-item-text {}
         .overlay-item-label {
           font-size: 14px; font-weight: 600;
           color: rgba(255,255,255,0.9);
@@ -1963,8 +1913,6 @@ function BottomNav({ page, setPage }) {
           font-family: system-ui, -apple-system, sans-serif;
           display: block;
         }
-
-        /* ── home indicator ── */
         .home-indicator {
           position: fixed; bottom: 8px; left: 50%; transform: translateX(-50%);
           width: 120px; height: 4px; border-radius: 2px;
@@ -1972,22 +1920,13 @@ function BottomNav({ page, setPage }) {
         }
       `}</style>
 
-      {/* Backdrop */}
-      <div
-        className={`overlay-backdrop ${overlayOpen ? "open" : ""}`}
-        onClick={() => setOverlayOpen(false)}
-      />
+      <div className={`overlay-backdrop ${overlayOpen ? "open" : ""}`} onClick={() => setOverlayOpen(false)} />
 
-      {/* Overlay card */}
       <div className={`overlay-card ${overlayOpen ? "open" : ""}`}>
         {overlayItems.map(item => (
-          <button
-            key={item.key}
-            className={`overlay-item ${page === item.key ? "active-page" : ""}`}
-            onClick={() => handleOverlayPick(item.key)}
-          >
+          <button key={item.key} className={`overlay-item ${page === item.key ? "active-page" : ""}`} onClick={() => handleOverlayPick(item.key)}>
             <div className="overlay-item-icon">{item.icon}</div>
-            <div className="overlay-item-text">
+            <div>
               <span className="overlay-item-label">{item.label}</span>
               <span className="overlay-item-desc">{item.desc}</span>
             </div>
@@ -1995,27 +1934,16 @@ function BottomNav({ page, setPage }) {
         ))}
       </div>
 
-      {/* Bottom bar */}
       <div className="nav-wrap">
-        {/* Pill */}
         <div className="nav-pill">
           {pillTabs.map(t => (
-            <button
-              key={t.key}
-              className={`nav-btn ${page === t.key ? "active" : ""}`}
-              onClick={() => { setPage(t.key); setOverlayOpen(false); }}
-            >
+            <button key={t.key} className={`nav-btn ${page === t.key ? "active" : ""}`} onClick={() => { setPage(t.key); setOverlayOpen(false); }}>
               <span className="nav-btn-icon">{t.icon}</span>
               <span className="nav-btn-label">{t.label}</span>
             </button>
           ))}
         </div>
-
-        {/* Plus button */}
-        <button
-          className={`nav-plus ${overlayOpen ? "open" : ""}`}
-          onClick={() => setOverlayOpen(o => !o)}
-        >
+        <button className={`nav-plus ${overlayOpen ? "open" : ""}`} onClick={() => setOverlayOpen(o => !o)}>
           <span className="nav-plus-icon">+</span>
         </button>
       </div>
@@ -2024,18 +1952,6 @@ function BottomNav({ page, setPage }) {
     </>
   );
 }
-
-
-// ── In your App return, update the page routing to include insights + sync:
-//
-//   {page === "home"     && <HomePage     ... />}
-//   {page === "mood"     && <MoodPage     ... />}
-//   {page === "journal"  && <JournalPage  ... />}
-//   {page === "food"     && <FoodPage     ... />}
-//   {page === "insights" && <InsightsPage ... />}
-//   {page === "sync"     && <SyncPage     />}        ← add when you build it
-//
-// No other changes needed in App.jsx.
 
 // ── Main App ─────────────────────────────────────────────────────────────────
 export default function App() {
@@ -2055,8 +1971,6 @@ export default function App() {
       setFoodLogs(foodLogs);
       setWeatherLogs(weatherLogs);
       setLoading(false);
-
-      // Fire weather auto-track after data is loaded (so we can check for duplicates)
       autoTrackWeather(weatherLogs, setWeatherLogs);
     });
   }, []);
