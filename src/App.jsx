@@ -335,43 +335,54 @@ const autoTrackWeather = async (existingWeatherLogs, setWeatherLogs) => {
 };
 
 // ── Slider ───────────────────────────────────────────────────────────────────
-function Slider({ value, onChange, min = 1, max = 10, step = 0.5, color }) {
+function Slider({ value, onChange, min = 1, max = 10, step = 0.01, color }) {
   const pct = ((value - min) / (max - min)) * 100;
   const c = color || scoreColor(value);
+  const uid = `slider-${min}-${max}`;
   return (
     <div style={{ position: "relative", padding: "8px 0" }}>
-      <input type="range" min={min} max={max} step={step} value={value}
-        onChange={e => onChange(parseFloat(e.target.value))}
-        style={{
-          width: "100%", appearance: "none", height: 4, borderRadius: 2,
-          background: `linear-gradient(to right, ${c} ${pct}%, rgba(255,255,255,0.1) ${pct}%)`,
-          outline: "none", cursor: "pointer",
-        }}
-      />
       <style>{`
-        input[type=range]::-webkit-slider-thumb {
-          appearance:none; width:20px; height:20px; border-radius:50%;
-          background:${c}; border:2px solid #1a1a2e; cursor:pointer;
-          box-shadow:0 0 8px ${c}88;
+        .${uid}::-webkit-slider-thumb {
+          -webkit-appearance: none; appearance: none;
+          width: 22px; height: 22px; border-radius: 50%;
+          background: ${c}; border: 2px solid #1a1a2e; cursor: grab;
+          box-shadow: 0 0 8px ${c}88;
+        }
+        .${uid}::-webkit-slider-thumb:active { cursor: grabbing; }
+        .${uid}::-moz-range-thumb {
+          width: 22px; height: 22px; border-radius: 50%;
+          background: ${c}; border: 2px solid #1a1a2e; cursor: grab;
+          box-shadow: 0 0 8px ${c}88;
         }
       `}</style>
+      <input
+        type="range" min={min} max={max} step={step} value={value}
+        className={uid}
+        onChange={e => onChange(parseFloat(e.target.value))}
+        style={{
+          width: "100%", WebkitAppearance: "none", appearance: "none",
+          height: 4, borderRadius: 2, outline: "none", cursor: "pointer",
+          background: `linear-gradient(to right, ${c} ${pct}%, rgba(255,255,255,0.1) ${pct}%)`,
+          touchAction: "none",
+        }}
+      />
     </div>
   );
 }
 
 // ── AuraSlider (for Journal) ─────────────────────────────────────────────────
-function AuraSlider({ value, onChange, min = 0, max = 16, step = 0.5, accentColor = "#92400e", sliderKey = "s" }) {
+function AuraSlider({ value, onChange, min = 0, max = 16, step = 0.01, accentColor = "#92400e", sliderKey = "s" }) {
   const pct = ((value - min) / (max - min)) * 100;
   const cls = `aslider-${sliderKey}`;
   return (
     <div style={{ position: "relative", padding: "10px 0" }}>
       <style>{`
-        .${cls} { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; border-radius: 4px; outline: none; cursor: pointer; background: linear-gradient(to right, ${accentColor} ${pct}%, rgba(30,10,0,0.15) ${pct}%); }
-        .${cls}::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.5); backdrop-filter: blur(20px); border: 1.5px solid rgba(255,255,255,0.8); box-shadow: 0 2px 12px rgba(0,0,0,0.2); cursor: grab; opacity: 0; transition: opacity 0.18s, transform 0.15s; }
-        .${cls}:hover::-webkit-slider-thumb, .${cls}:active::-webkit-slider-thumb { opacity: 1; transform: scale(1.1); }
-        .${cls}:active::-webkit-slider-thumb { cursor: grabbing; }
+        .${cls} { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; border-radius: 4px; outline: none; cursor: pointer; touch-action: none; background: linear-gradient(to right, ${accentColor} ${pct}%, rgba(30,10,0,0.15) ${pct}%); }
+        .${cls}::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.5); backdrop-filter: blur(20px); border: 1.5px solid rgba(255,255,255,0.8); box-shadow: 0 2px 12px rgba(0,0,0,0.2); cursor: grab; }
+        .${cls}::-webkit-slider-thumb:active { cursor: grabbing; transform: scale(1.1); }
+        .${cls}::-moz-range-thumb { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.5); border: 1.5px solid rgba(255,255,255,0.8); cursor: grab; }
       `}</style>
-      <input type="range" min={min} max={max} step={step} value={value} className={cls} onChange={(e) => onChange(parseFloat(e.target.value))} />
+      <input type="range" min={min} max={max} step={step} value={value} className={cls} onChange={(e) => onChange(parseFloat(e.target.value))} style={{ touchAction: "none" }} />
     </div>
   );
 }
@@ -799,16 +810,18 @@ function JournalPage({ journalLogs, setJournalLogs }) {
     </button>
   );
 
-  const BlueSlider = ({ value, onChange, min = 0, max = 16, step = 0.5, color = "#60a5fa", sliderKey = "s" }) => {
+  const BlueSlider = ({ value, onChange, min = 0, max = 16, step = 0.01, color = "#60a5fa", sliderKey = "s" }) => {
     const pct = ((value - min) / (max - min)) * 100;
     const cls = `bslider-${sliderKey}`;
     return (
       <div style={{ position: "relative", padding: "10px 0" }}>
         <style>{`
-          .${cls} { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; border-radius: 4px; outline: none; cursor: pointer; background: linear-gradient(to right, ${color} ${pct}%, rgba(255,255,255,0.1) ${pct}%); }
-          .${cls}::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%; background: ${color}; border: 2px solid #1a1a2e; box-shadow: 0 0 8px ${color}88; cursor: pointer; }
+          .${cls} { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; border-radius: 4px; outline: none; cursor: pointer; touch-action: none; background: linear-gradient(to right, ${color} ${pct}%, rgba(255,255,255,0.1) ${pct}%); }
+          .${cls}::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 26px; height: 26px; border-radius: 50%; background: ${color}; border: 2px solid #1a1a2e; box-shadow: 0 0 8px ${color}88; cursor: grab; }
+          .${cls}::-webkit-slider-thumb:active { cursor: grabbing; }
+          .${cls}::-moz-range-thumb { width: 26px; height: 26px; border-radius: 50%; background: ${color}; border: 2px solid #1a1a2e; box-shadow: 0 0 8px ${color}88; cursor: grab; }
         `}</style>
-        <input type="range" min={min} max={max} step={step} value={value} className={cls} onChange={(e) => onChange(parseFloat(e.target.value))} />
+        <input type="range" min={min} max={max} step={step} value={value} className={cls} onChange={(e) => onChange(parseFloat(e.target.value))} style={{ touchAction: "none" }} />
       </div>
     );
   };
