@@ -618,10 +618,10 @@ function MoodPage({ moodLogs, setMoodLogs, wolLogs, setWolLogs }) {
           borderRadius: 12, margin: "20px 20px 0", border: "1px solid rgba(255,255,255,0.12)",
         }}>
           {[{ key: "checkin", label: "Daily" }, { key: "wol", label: "Weekly" }].map(t => (
-            <button key={t.key} onClick={() => setTab(t.key)} style={{
-              flex: 1, padding: "10px", border: "none", borderRadius: 10,
-              background: tab === t.key ? "rgba(99,102,241,0.3)" : "transparent",
-              color: tab === t.key ? "#a5b4fc" : "rgba(255,255,255,0.4)",
+            <button type="button" key={t.key} onClick={() => setTab(t.key)} style={{
+             flex: 1, padding: "10px", border: "none", borderRadius: 10,
+             background: tab === t.key ? "rgba(99,102,241,0.3)" : "transparent",
+             color: tab === t.key ? "#a5b4fc" : "rgba(255,255,255,0.4)",
               fontSize: 13, fontWeight: tab === t.key ? 600 : 400, cursor: "pointer", transition: "all 0.2s",
             }}>
               {t.label}
@@ -877,7 +877,7 @@ function JournalPage({ journalLogs, setJournalLogs }) {
 
         <div style={{ display: "flex", gap: 0, background: "rgba(255,255,255,0.07)", borderRadius: 12, margin: "0 20px 20px", border: "1px solid rgba(255,255,255,0.12)" }}>
           {[{ key: "checkin", label: "Today" }, { key: "history", label: "History" }].map(t => (
-            <button key={t.key} onClick={() => setTab(t.key)} style={{
+            <button type="button" key={t.key} onClick={() => setTab(t.key)} style={{
               flex: 1, padding: "10px", border: "none", borderRadius: 10,
               background: tab === t.key ? "rgba(99,102,241,0.3)" : "transparent",
               color: tab === t.key ? "#a5b4fc" : "rgba(255,255,255,0.4)",
@@ -1927,7 +1927,7 @@ function BottomNav({ page, setPage }) {
 
       <div className={`overlay-card ${overlayOpen ? "open" : ""}`}>
         {overlayItems.map(item => (
-          <button key={item.key} className={`overlay-item ${page === item.key ? "active-page" : ""}`} onClick={() => handleOverlayPick(item.key)}>
+          <button type="button" key={item.key} className={`overlay-item ${page === item.key ? "active-page" : ""}`} onClick={() => handleOverlayPick(item.key)}>
             <div className="overlay-item-icon">{item.icon}</div>
             <div>
               <span className="overlay-item-label">{item.label}</span>
