@@ -714,7 +714,7 @@ function MoodPage({ moodLogs, setMoodLogs, wolLogs, setWolLogs }) {
                 ✓  {currentPeriod} check-in saved!
               </div>
             ) : (
-              <button onClick={saveEntry} disabled={isPeriodLocked} style={{
+              <button type="button" onClick={saveEntry} disabled={isPeriodLocked} style={{
                 width: "100%", padding: "14px", borderRadius: 12, border: "none",
                 background: isPeriodLocked ? "rgba(99,102,241,0.2)" : "linear-gradient(135deg,#6366f1,#8b5cf6)",
                 color: isPeriodLocked ? "#555" : "#fff",
@@ -1017,7 +1017,7 @@ function JournalPage({ journalLogs, setJournalLogs }) {
             ) : saved ? (
               <div style={{ textAlign: "center", padding: "14px", borderRadius: 12, background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.25)", color: "#4ade80", fontSize: 14, fontWeight: 600 }}>✓  Saved</div>
             ) : (
-              <button onClick={saveEntry} style={{ width: "100%", padding: "14px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer" }}>Save Entry</button>
+              <button type="button" onClick={saveEntry} style={{ width: "100%", padding: "14px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer" }}>Save Entry</button>
             )}
           </div>
         )}
@@ -1940,13 +1940,13 @@ function BottomNav({ page, setPage }) {
       <div className="nav-wrap">
         <div className="nav-pill">
           {pillTabs.map(t => (
-            <button key={t.key} className={`nav-btn ${page === t.key ? "active" : ""}`} onClick={() => { setPage(t.key); setOverlayOpen(false); }}>
+           <button type="button" key={t.key} className={`nav-btn ${page === t.key ? "active" : ""}`} onClick={() => { setPage(t.key); setOverlayOpen(false); }}>
               <span className="nav-btn-icon">{t.icon}</span>
               <span className="nav-btn-label">{t.label}</span>
             </button>
           ))}
         </div>
-        <button className={`nav-plus ${overlayOpen ? "open" : ""}`} onClick={() => setOverlayOpen(o => !o)}>
+        <button type="button" className={`nav-plus ${overlayOpen ? "open" : ""}`} onClick={() => setOverlayOpen(o => !o)}>
           <span className="nav-plus-icon">+</span>
         </button>
       </div>
