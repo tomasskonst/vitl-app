@@ -1923,7 +1923,7 @@ function BottomNav({ page, setPage }) {
         }
       `}</style>
 
-      <div className={`overlay-backdrop ${overlayOpen ? "open" : ""}`} onClick={() => setOverlayOpen(false)} />
+      <div className={`overlay-backdrop ${overlayOpen ? "open" : ""}`} onClick={(e) => { e.stopPropagation(); setOverlayOpen(false); }} />
 
       <div className={`overlay-card ${overlayOpen ? "open" : ""}`}>
         {overlayItems.map(item => (
@@ -1946,7 +1946,7 @@ function BottomNav({ page, setPage }) {
             </button>
           ))}
         </div>
-        <button type="button" className={`nav-plus ${overlayOpen ? "open" : ""}`} onClick={() => setOverlayOpen(o => !o)}>
+        <button type="button" className={`nav-plus ${overlayOpen ? "open" : ""}`} onClick={(e) => { e.stopPropagation(); setOverlayOpen(o => !o); }}>
           <span className="nav-plus-icon">+</span>
         </button>
       </div>
