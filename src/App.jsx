@@ -755,7 +755,7 @@ function BlueSlider({ value, onChange, min = 0, max = 16, step = 0.01, color = "
 
 function ToggleBtn({ value, onToggle, labelYes = "Yes ✓", labelNo = "No" }) {
   return (
-    <button onClick={onToggle} style={{
+    <button type="button" onClick={onToggle} style={{
       background: value ? "rgba(99,102,241,0.35)" : "rgba(255,255,255,0.07)",
       border: `1px solid ${value ? "rgba(99,102,241,0.6)" : "rgba(255,255,255,0.13)"}`,
       borderRadius: 20, padding: "7px 18px", cursor: "pointer",
@@ -1190,7 +1190,7 @@ function WOLPage({ wolLogs, setWolLogs }) {
               ✓  Saved for this week
             </div>
           ) : (
-            <button onClick={saveWOL} style={{
+            <button type="button" onClick={saveWOL} style={{
               width: "100%", padding: "14px", borderRadius: 12, border: "none",
               background: "linear-gradient(135deg,#6366f1,#8b5cf6)",
               color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer", marginTop: 4,
@@ -1438,7 +1438,7 @@ function FoodPage({ foodLogs, setFoodLogs }) {
             <input ref={fileRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={e => handleFile(e.target.files[0])} />
 
             {image && (
-              <button onClick={analyseImage} disabled={loading} style={{
+              <button type="button" onClick={analyseImage} disabled={loading} style={{
                 width: "100%", padding: "14px", borderRadius: 12, border: "none",
                 background: loading ? "rgba(99,102,241,0.4)" : "linear-gradient(135deg,#6366f1,#8b5cf6)",
                 color: "#fff", fontSize: 15, fontWeight: 600, cursor: loading ? "default" : "pointer", marginBottom: 16,
@@ -1460,7 +1460,7 @@ function FoodPage({ foodLogs, setFoodLogs }) {
                   <textarea className="food-ta" placeholder="e.g. 2 scrambled eggs, 2 slices of sourdough toast with butter, and a black coffee"
                     value={textInput} onChange={e => setTextInput(e.target.value)}
                     style={{ width: "100%", minHeight: 80, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 10, padding: "12px 14px", color: "#fff", fontSize: 13, resize: "none", outline: "none", boxSizing: "border-box", fontFamily: "inherit", marginBottom: 10, lineHeight: 1.5 }} />
-                  <button onClick={analyseText} disabled={loading || !textInput.trim()} style={{
+                  <button type="button" onClick={analyseText} disabled={loading || !textInput.trim()} style={{
                     width: "100%", padding: "13px", borderRadius: 10, border: "none",
                     background: (!textInput.trim() || loading) ? "rgba(99,102,241,0.6)" : "linear-gradient(135deg,#6366f1,#8b5cf6)",
                     color: "#fff", fontSize: 14, fontWeight: 600, cursor: (!textInput.trim() || loading) ? "default" : "pointer",
@@ -1584,8 +1584,8 @@ function FoodPage({ foodLogs, setFoodLogs }) {
               <div style={{ textAlign: "center", padding: "14px", background: "rgba(74,222,128,0.1)", borderRadius: 12, color: "#4ade80", fontSize: 14, fontWeight: 600 }}>✓  Saved</div>
             ) : (
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                <button onClick={reset} style={{ padding: "13px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.13)", background: "rgba(255,255,255,0.05)", color: "#888", fontSize: 14, cursor: "pointer" }}>Retake</button>
-                <button onClick={saveLog} style={{ padding: "13px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Save Log</button>
+                <button type="button" onClick={reset} style={{ padding: "13px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.13)", background: "rgba(255,255,255,0.05)", color: "#888", fontSize: 14, cursor: "pointer" }}>Retake</button>
+                <button type="button" onClick={saveLog} style={{ padding: "13px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Save Log</button>
               </div>
             )}
           </div>
