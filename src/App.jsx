@@ -1778,7 +1778,7 @@ function BottomNav({ page, setPage }) {
     const overlayItems = [
   { key: "insights", icon: "⚡", label: "Insights",     desc: "Patterns from your data" },
   { key: "sync",     icon: "↻",  label: "Data Sync",    desc: "Import Garmin & more"    },
-  { key: "analytics", icon: "🧬", label: "Deep Analysis", desc: "Correlations & patterns" }, // ← add this
+  { key: "analytics", icon: "🧬", label: "Deep Analysis", desc: "Correlations & patterns" },
 ];
 
   const handleOverlayPick = (key) => {
@@ -2006,7 +2006,7 @@ export default function App() {
           {page === "food"     && <FoodPage     foodLogs={foodLogs} setFoodLogs={setFoodLogs} />}
           {page === "insights" && <InsightsPage moodLogs={moodLogs} journalLogs={journalLogs} foodLogs={foodLogs} wolLogs={wolLogs} weatherLogs={weatherLogs} />}
           {page === "sync"     && <SyncPage />}
-          {page === "analytics" && <AnalyticsPage />}  // ← add this
+          {page === "analytics" && <AnalyticsPage />}
         </div>
       )}
 
